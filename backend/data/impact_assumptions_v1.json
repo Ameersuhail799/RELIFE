@@ -1,0 +1,42 @@
+{
+  "version": "1.0.0-provisional",
+  "status": "PROVISIONAL",
+  "disclaimer": "All environmental figures are prototype estimates based on peer-reviewed LCA literature and require institutional verification.",
+  "assumptions": {
+    "laptop_embodied_co2e_kg": {
+      "value": 280.0,
+      "unit": "kg_CO2e",
+      "source": "Fraunhofer IZM / Dell Product Carbon Footprint Reports (Provisional meta-average)",
+      "confidence": "PROVISIONAL",
+      "notes": "Estimated manufacturing and distribution carbon footprint of a standard 14-inch business laptop."
+    },
+    "desktop_embodied_co2e_kg": {
+      "value": 350.0,
+      "unit": "kg_CO2e",
+      "source": "European Commission JRC ICT LCA Review (Provisional benchmark)",
+      "confidence": "PROVISIONAL",
+      "notes": "Estimated embodied carbon for standard enterprise desktop chassis (excluding standalone display)."
+    },
+    "laptop_ewaste_mass_kg": {
+      "value": 2.1,
+      "unit": "kg",
+      "source": "Typical chassis mass measurement without external power brick",
+      "confidence": "MEDIUM",
+      "notes": "Average net e-waste diversion weight for business laptops."
+    },
+    "desktop_ewaste_mass_kg": {
+      "value": 7.5,
+      "unit": "kg",
+      "source": "Typical tower mass measurement",
+      "confidence": "MEDIUM",
+      "notes": "Average net e-waste diversion weight for desktop mini-towers."
+    },
+    "annual_operational_co2e_avoided_kg_per_year": {
+      "value": 45.0,
+      "unit": "kg_CO2e/year",
+      "source": "Amortized manufacturing avoidance heuristic (Provisional)",
+      "confidence": "PROVISIONAL",
+      "notes": "Annualized displaced new equipment manufacturing carbon footprint per year of extended active lifetime."
+    }
+  }
+}
