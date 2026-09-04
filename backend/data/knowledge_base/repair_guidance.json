@@ -1,0 +1,33 @@
+{
+  "category": "repair_guidance",
+  "documents": [
+    {
+      "source_id": "REPAIR-KB-001",
+      "source_title": "Enterprise Laptop Keyboard & Keycap Service Guide",
+      "author": "iFixit / Enterprise Service Manuals (Dell & Lenovo)",
+      "excerpt": "Keyboard sticking or broken keycaps in enterprise modular chassis (ThinkPad T-series, Latitude 7000) are classified as Tier 1 minor repairs. Servicing involves either individual keycap scissor mechanism replacement (15 min labor) or complete modular keyboard drop-in assembly (30 min labor). Economic viability is high when replacement part cost is under 15% of residual asset value.",
+      "keywords": ["keyboard", "sticking_key", "broken_key", "laptop_servicing", "minor_defect"]
+    },
+    {
+      "source_id": "REPAIR-KB-002",
+      "source_title": "Thermal Subsystem Servicing & Repasting Best Practices",
+      "author": "Hardware Maintenance Standard SOP-TH-04",
+      "excerpt": "Thermal throttling and fan noise in 3-5 year old laptops/desktops are predominantly caused by desiccated thermal interface material (TIM) and dust accumulation in the copper fin stack. Cleaning with compressed air and applying high-performance non-conductive thermal paste (e.g. Arctic MX-4) restores thermal headroom within 20-30 minutes, preventing processor degradation and thermal shutdowns.",
+      "keywords": ["thermal_throttling", "cooling", "fan", "repaste", "thermal_paste"]
+    },
+    {
+      "source_id": "REPAIR-KB-003",
+      "source_title": "Lithium-Ion Battery Health Thresholds for Campus IT",
+      "author": "Battery University / IEEE 1625 Standard",
+      "excerpt": "Laptops with battery health remaining between 50% and 79% are suitable for general stationary campus use with intermittent mobility. Batteries exhibiting health below 50% or swelling must be retired immediately. Devices with degraded batteries can be safely converted into desk-bound workstations or upgraded with OEM replacement packs if the motherboard and display are pristine.",
+      "keywords": ["battery", "weak_battery", "battery_health", "mobility", "swollen_battery"]
+    },
+    {
+      "source_id": "REPAIR-KB-004",
+      "source_title": "Storage Subsystem SSD Upgrades for Legacy Hardware",
+      "author": "Crucial / Kingston Enterprise Lifecycle Extension Whitepaper",
+      "excerpt": "Replacing mechanical 5400/7200 RPM HDDs with SATA III or NVMe solid-state drives delivers a 4x-10x increase in random 4K I/O operations, rendering 6th-8th Gen Core i3/i5 systems fully responsive for modern web browsing, office suites, and lightweight programming environments.",
+      "keywords": ["slow_hdd", "hdd_to_ssd", "ssd_upgrade", "storage_performance"]
+    }
+  ]
+}

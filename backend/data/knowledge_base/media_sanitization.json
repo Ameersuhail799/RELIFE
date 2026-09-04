@@ -1,0 +1,19 @@
+{
+  "category": "media_sanitization",
+  "documents": [
+    {
+      "source_id": "NIST-800-88-R1",
+      "source_title": "NIST SP 800-88 Rev 1: Guidelines for Media Sanitization",
+      "author": "National Institute of Standards and Technology (NIST)",
+      "excerpt": "Clear, Purge, and Destroy are the three recognized levels of media sanitization. Clear involves overwriting user-addressable locations using logical interfaces. Purge renders target data recovery infeasible using state-of-the-art laboratory techniques (e.g. Cryptographic Erase / Secure Erase for ATA/NVMe). Destroy physically shreds or degausses media. Direct internal reuse or donation of electronic media requires verified Clear or Purge with recorded technician certificate.",
+      "keywords": ["nist_800_88", "sanitization", "crypto_erase", "overwrite", "purge", "clear", "data_security"]
+    },
+    {
+      "source_id": "SEC-SOP-002",
+      "source_title": "Institutional Storage Disposition & Chain of Custody",
+      "author": "Campus Cyber-Security Governance Committee",
+      "excerpt": "Hardware assets containing persistent magnetic or flash storage may not leave primary department ownership or be redeployed to other units without an auditable wipe log. If automated cryptographic sanitization fails or media contains uncorrectable bad blocks, the drive must be removed, logged in inventory, and physically destroyed via a certified degausser or cross-cut shredder.",
+      "keywords": ["chain_of_custody", "drive_removal", "sanitization_policy", "data_leak_prevention"]
+    }
+  ]
+}

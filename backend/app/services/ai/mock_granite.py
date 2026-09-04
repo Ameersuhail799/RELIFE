@@ -4,173 +4,221 @@ from backend.app.core.enums import (
     DestinationAction,
     DecisionObjective,
     ConfidenceLevel,
+    FunctionalStatus,
+    PhysicalCondition,
+    ComputeTier,
 )
+from backend.app.schemas.ai import AIAssessmentResult, ScenarioItem, RAGSourceItem
 from backend.app.services.ai.base import LLMProvider
+from backend.app.services.ai.rag_engine import rag_engine
 
 
 class MockGraniteProvider(LLMProvider):
     """
-    High-fidelity offline implementation of IBM Granite circular reasoning.
-    Adheres strictly to the architectural boundary:
-    - Only chooses among pre-filtered ELIGIBLE pathways.
-    - Uses deterministic economics as factual constraints.
-    - Generates structured, explainable trade-offs.
+    High-fidelity offline IBM Granite circular reasoning & assessment engine.
+    Fully integrated with the RAG Knowledge Retrieval Layer and Scenario Engine.
+    Respects strict architectural boundaries:
+    - Never modifies deterministic calculations or security gates.
+    - Assesses conditions and explains scenario rankings based on DecisionObjective.
     """
 
-    def generate_recommendation(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        eligible: List[CircularPathway] = context["eligible_pathways"]
-        objective: DecisionObjective = context.get("decision_objective", DecisionObjective.BALANCED)
-        economics = context["economics"]
+    def assess_asset(self, context: Dict[str, Any]) -> AIAssessmentResult:
         asset = context["asset"]
         capability = context["capability_profile"]
+        economics = context.get("economics", {})
+        known_issues = asset.get("known_issues", [])
+        functional_status = asset.get("functional_status", "fully_functional")
+        physical_condition = asset.get("physical_condition", "grade_a")
+
+        # 1. Condition Assessment
+        if functional_status == FunctionalStatus.FULLY_FUNCTIONAL.value:
+            cond_text = f"Hardware operates in full functional order. Physical condition is {physical_condition}."
+        elif functional_status == FunctionalStatus.MINOR_DEFECT.value:
+            cond_text = f"Hardware operational with minor defects: {', '.join(known_issues) if known_issues else 'minor wear'}."
+        elif functional_status == FunctionalStatus.MAJOR_FAULT.value:
+            cond_text = f"Significant structural or electrical faults: {', '.join(known_issues)}."
+        else:
+            cond_text = "Severe non-functional failure; primary system board does not boot."
+
+        # 2. Repairability Assessment
+        economic_flag = economics.get("economic_viability_flag", "HIGHLY_VIABLE")
+        if functional_status == FunctionalStatus.FULLY_FUNCTIONAL.value:
+            repairability = "HIGH"
+        elif functional_status == FunctionalStatus.MINOR_DEFECT.value:
+            repairability = "HIGH" if economic_flag in ("HIGHLY_VIABLE", "MARGINAL") else "MODERATE"
+        elif functional_status == FunctionalStatus.MAJOR_FAULT.value:
+            repairability = "MODERATE" if economic_flag == "MARGINAL" else "LOW"
+        else:
+            repairability = "IMPRACTICAL"
+
+        # 3. Repurpose Potential
+        if capability.compute_tier in (ComputeTier.PERFORMANCE, ComputeTier.MID):
+            repurpose_pot = "HIGH"
+        elif capability.compute_tier == ComputeTier.ENTRY:
+            repurpose_pot = "HIGH"
+        else:
+            repurpose_pot = "MODERATE" if functional_status != FunctionalStatus.NON_FUNCTIONAL.value else "LOW"
+
+        # 4. Possible Second-Life Roles
+        possible_roles = []
+        if capability.compute_tier in (ComputeTier.PERFORMANCE, ComputeTier.MID) and functional_status in (
+            FunctionalStatus.FULLY_FUNCTIONAL.value,
+            FunctionalStatus.MINOR_DEFECT.value,
+        ):
+            possible_roles.extend(["coding_workstation", "general_office_workstation"])
+        if functional_status != FunctionalStatus.NON_FUNCTIONAL.value:
+            possible_roles.extend(["public_kiosk_terminal", "iot_gateway_or_lab_node", "headless_linux_server"])
+        if functional_status == FunctionalStatus.NON_FUNCTIONAL.value:
+            possible_roles.append("modular_spare_parts_donor")
+
+        confidence = ConfidenceLevel.HIGH if len(known_issues) > 0 else ConfidenceLevel.MEDIUM
+        assumptions = [
+            "Component diagnostic tests accurately reflect persistent silicon health.",
+            "Display panel and logic board connectors remain uncorroded.",
+        ]
+        uncertainties = [
+            "Latent solder micro-fractures under high thermal cycles have not been evaluated with X-ray inspection.",
+        ]
+
+        summary = (
+            f"Asset {asset.get('asset_id')} assessed as {repairability} repairability with {repurpose_pot} repurposing potential. "
+            f"Hardware tier ({capability.compute_tier.value}) supports {len(possible_roles)} viable second-life operational roles."
+        )
+
+        return AIAssessmentResult(
+            condition_assessment=cond_text,
+            repairability=repairability,
+            repurpose_potential=repurpose_pot,
+            possible_roles=possible_roles,
+            reasoning_summary=summary,
+            confidence_level=confidence,
+            assumptions=assumptions,
+            uncertainties=uncertainties,
+        )
+
+    def generate_recommendation(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        asset = context["asset"]
+        capability = context["capability_profile"]
+        scenarios: List[ScenarioItem] = context["scenarios"]
+        objective: DecisionObjective = context.get("decision_objective", DecisionObjective.BALANCED)
+        economics = context.get("economics", {})
         known_issues = asset.get("known_issues", [])
 
-        # Priority selection among ELIGIBLE pathways based on objective
-        if CircularPathway.DIRECT_REUSE in eligible and objective != DecisionObjective.SUSTAINABILITY_FIRST:
-            best_pathway = CircularPathway.DIRECT_REUSE
-            destination = DestinationAction.INTERNAL_REDEPLOYMENT
-            score = 94.0
-            reasons = [
-                "Device passed all security sanitization checks with verified certificate.",
-                "Hardware is in fully functional working order with zero defect flags.",
-                "Direct redeployment delivers immediate institutional utility with zero capital expenditure.",
-            ]
+        # 1. RAG Knowledge Retrieval: Query using asset condition & defects
+        query_terms = [
+            asset.get("device_type", ""),
+            asset.get("model", ""),
+            "sanitization",
+            "sdg12",
+        ] + known_issues
+        query_str = " ".join(query_terms)
+        evidence_sources: List[RAGSourceItem] = rag_engine.retrieve_relevant_knowledge(query=query_str, top_k=3)
+
+        # 2. Select Winning Scenario (Top-ranked by deterministic scenario engine)
+        best_scenario = scenarios[0]
+        best_pathway = best_scenario.pathway
+        destination = best_scenario.destination_action
+        score = best_scenario.suitability_score
+
+        # 3. Construct Explainable "Why this recommendation?" Narrative
+        obj_name = objective.value.replace("_", " ").title()
+        device_label = f"{asset.get('manufacturer', '')} {asset.get('model', 'Asset')} ({asset.get('asset_id', '')})"
+        if best_pathway == CircularPathway.DIRECT_REUSE:
+            why_text = (
+                f"For {device_label}, under the {obj_name} objective, DIRECT REUSE is the highest-ranking circular pathway "
+                f"(Suitability Score: {score}/100). The asset has satisfied all data sanitization security gates, "
+                f"retains full functional capability, and immediately fulfills institutional demand with zero capital spend."
+            )
             key_factors = [
                 "Zero repair cost incurred (₹0).",
-                f"Saves ~{context['environmental'].ewaste_mass_kg} kg of immediate electronic waste.",
-                "High performance capability profile satisfies campus productivity needs.",
+                f"Prevents ~{best_scenario.estimated_ewaste_diverted_kg} kg of immediate electronic waste.",
+                f"Saves ~₹{economics.get('estimated_avoided_cost', 45000):,.0f} in new equipment procurement.",
+                "Mandatory data sanitization security gate verified.",
             ]
+        elif best_pathway == CircularPathway.REPAIR:
             why_text = (
-                f"Asset {asset['asset_id']} is cleared from data sanitization risks and is physically sound. "
-                "Direct redeployment yields the highest cost-to-benefit ratio without requiring component replacement."
+                f"For {device_label}, under the {obj_name} objective, REPAIR is recommended (Suitability Score: {score}/100). "
+                f"Required servicing ({', '.join(known_issues) if known_issues else 'servicing'}) has an estimated cost of "
+                f"₹{best_scenario.deterministic_cost:,.0f}, which is highly viable relative to the asset's estimated residual "
+                f"value (₹{best_scenario.estimated_residual_value:,.0f}). Servicing extends useful life by ~{best_scenario.useful_life_extension_years} years."
             )
-            confidence = ConfidenceLevel.HIGH
-
-        elif CircularPathway.REPAIR in eligible and economics["economic_viability_flag"] in ("HIGHLY_VIABLE", "MARGINAL"):
-            best_pathway = CircularPathway.REPAIR
-            destination = DestinationAction.INTERNAL_REDEPLOYMENT
-            score = 88.5 if objective in (DecisionObjective.BALANCED, DecisionObjective.SUSTAINABILITY_FIRST) else 82.0
-            reasons = [
-                f"Economic viability is rated {economics['economic_viability_flag']}: "
-                f"estimated repair cost (₹{economics['estimated_repair_cost']:,.0f}) is only "
-                f"{economics['calculation_breakdown']['repair_to_residual_ratio'] * 100:.0f}% of residual value (₹{economics['estimated_residual_value']:,.0f}).",
-                f"Extends useful working life by ~{context['environmental'].estimated_life_extension_years} years.",
-                "Avoids purchasing a new equivalent enterprise machine (saving ~₹45,000).",
-            ]
             key_factors = [
-                f"Identified defect(s): {', '.join(known_issues) if known_issues else 'general wear'}.",
-                f"Estimated repair expenditure: ₹{economics['estimated_repair_cost']:,.0f}.",
-                f"Estimated CO2e avoided: {context['environmental'].total_estimated_co2e_avoided_kg} kg (provisional estimate).",
+                f"Deterministic repair expenditure: ₹{best_scenario.deterministic_cost:,.0f}.",
+                f"Life extension: {best_scenario.useful_life_extension_years} years.",
+                f"Estimated CO2e avoided: {best_scenario.estimated_co2e_avoided_kg} kg (provisional LCA estimate).",
+                f"Economic viability rating: {economics.get('economic_viability_flag', 'HIGHLY_VIABLE')}.",
             ]
+        elif best_pathway == CircularPathway.REPURPOSE:
             why_text = (
-                f"Repair is strongly recommended for {asset['asset_id']} because the required servicing "
-                f"({', '.join(economics['calculation_breakdown']['matched_repairs'])}) is economically sound "
-                f"relative to its estimated residual value (₹{economics['estimated_residual_value']:,.0f}), "
-                f"preventing premature disposal and yielding an estimated {context['environmental'].estimated_life_extension_years} years of further utility."
+                f"Under the {obj_name} objective, REPURPOSING into {destination.value} is recommended "
+                f"(Suitability Score: {score}/100). The compute architecture is well-suited for dedicated campus "
+                f"infrastructure (e.g. IoT edge node, library terminal, or headless server) avoiding expensive workstation overhaul."
             )
-            confidence = ConfidenceLevel.HIGH if len(known_issues) > 0 else ConfidenceLevel.MEDIUM
-
-        elif CircularPathway.REPURPOSE in eligible:
-            best_pathway = CircularPathway.REPURPOSE
-            destination = DestinationAction.LAB_DEPLOYMENT
-            score = 79.0
-            reasons = [
-                "Primary workstation repair is either economically unviable or device compute tier is better suited for dedicated roles.",
-                f"Hardware capability ({capability.compute_tier.value}) is ideal for lightweight Linux headless services, campus kiosks, or IoT edge nodes.",
-                "Zero repair cost needed if redeployed as a stationary server or dedicated appliance.",
-            ]
             key_factors = [
-                "Repurposing extends lifecycle by ~2.0 years without new component procurement.",
-                "Eliminates reliance on battery runtime by utilizing desk-bound infrastructure.",
+                "Extracts secondary utility without requiring high-cost cosmetic or workstation repair.",
+                f"Extends active operational lifespan by ~{best_scenario.useful_life_extension_years} years.",
+                "Fully utilizes existing processing silicon for campus digital infrastructure.",
             ]
+        elif best_pathway == CircularPathway.COMPONENT_RECOVERY:
             why_text = (
-                f"Asset {asset['asset_id']} is recommended for Repurposing into a {destination.value}. "
-                "This extracts high utility from functioning compute hardware while circumventing expensive workstation repairs."
+                f"Under the {obj_name} objective, COMPONENT RECOVERY is recommended (Suitability Score: {score}/100). "
+                "The asset chassis or primary board is beyond economical repair, but valuable modular subassemblies "
+                "(RAM, solid-state drive) can be harvested for the campus repair inventory before recycling the chassis."
             )
-            confidence = ConfidenceLevel.MEDIUM
-
-        elif CircularPathway.COMPONENT_RECOVERY in eligible:
-            best_pathway = CircularPathway.COMPONENT_RECOVERY
-            destination = DestinationAction.COMPONENT_HARVEST
-            score = 72.0
-            reasons = [
-                "Device chassis or mainboard is beyond economical repair, but valuable modular subcomponents remain salvageable.",
-                f"Modular parts (e.g. {asset['ram_gb']}GB RAM, {asset['storage_type']} drive) can be harvested for the institutional spare-parts pool.",
-            ]
             key_factors = [
-                "High harvest value for internal repair operations.",
-                "Remaining non-functional chassis routed to certified e-waste recycler.",
+                "Salvages critical modular components for internal maintenance pool.",
+                "Diverts hazardous elements from immediate disposal.",
+                "Inert remaining materials routed to certified e-waste partner.",
             ]
+        else:  # RECYCLE
             why_text = (
-                f"Component recovery is the optimal path for {asset['asset_id']} to harvest functional "
-                "modular assemblies (RAM/storage) before sending inert structural materials for recycling."
+                f"Under the {obj_name} objective, RECYCLING is the appropriate pathway (Suitability Score: {score}/100). "
+                "All higher-level circular reuse, repair, and repurposing options are disqualified due to severe hardware failure. "
+                "Material recovery through certified WEEE recycling ensures compliant closed-loop disposal."
             )
-            confidence = ConfidenceLevel.HIGH
-
-        else:
-            best_pathway = CircularPathway.RECYCLE
-            destination = DestinationAction.CERTIFIED_RECYCLER
-            score = 65.0
-            reasons = [
-                "No viable higher circular recovery pathways passed the eligibility and safety filters.",
-                "Device has reached end of serviceable life and requires compliant WEEE recycling.",
-            ]
             key_factors = [
-                "Environmentally responsible material recovery by authorized recyclers.",
-                "Permanent disposal of hazardous materials.",
+                "Full compliance with statutory e-waste and environmental disposal standards.",
+                "Safe handling of hazardous battery and solder materials.",
             ]
-            why_text = (
-                f"Recycling is recommended for {asset['asset_id']} as all higher circular pathways are disqualified "
-                "due to severe defects or complete hardware obsolescence."
-            )
-            confidence = ConfidenceLevel.HIGH
 
-        # Construct alternatives considered from remaining eligible pathways
+        # 4. Alternatives Considered
         alternatives = []
-        for p in eligible:
-            if p != best_pathway:
-                if p == CircularPathway.REPURPOSE:
-                    alternatives.append({
-                        "pathway": p,
-                        "destination_action": DestinationAction.LAB_DEPLOYMENT,
-                        "suitability_score": 75.0,
-                        "trade_off_summary": "Viable alternative as a lightweight lab server, but yields lower user satisfaction than primary workstation repair.",
-                    })
-                elif p == CircularPathway.COMPONENT_RECOVERY:
-                    alternatives.append({
-                        "pathway": p,
-                        "destination_action": DestinationAction.COMPONENT_HARVEST,
-                        "suitability_score": 68.0,
-                        "trade_off_summary": "Salvages modular RAM and storage, but sacrifices potential whole-device life extension.",
-                    })
-                elif p == CircularPathway.RECYCLE:
-                    alternatives.append({
-                        "pathway": p,
-                        "destination_action": DestinationAction.CERTIFIED_RECYCLER,
-                        "suitability_score": 50.0,
-                        "trade_off_summary": "Baseline fallback; complies with environmental disposal but foregoes economic reuse value.",
-                    })
+        for sc in scenarios[1:]:
+            alternatives.append(
+                {
+                    "pathway": sc.pathway,
+                    "destination_action": sc.destination_action,
+                    "suitability_score": sc.suitability_score,
+                    "trade_off_summary": sc.trade_offs,
+                }
+            )
 
         assumptions = [
-            "Replacement parts (e.g. keyboards, batteries) are available from verified OEM or authorized third-party supply channels.",
-            "Institutional technicians have standard anti-static toolkits and test benches for hardware servicing.",
+            "Replacement parts and consumables conform to OEM or certified third-party specifications.",
+            "Institutional technicians adhere to ESD safe handling and NIST SP 800-88 sanitization protocols.",
             "Environmental metrics are provisional prototype estimates based on literature LCA averages, not measured carbon accounts.",
         ]
 
         uncertainties = [
-            "Motherboard stress-testing under prolonged thermal load has not been verified.",
-            "Actual market salvage value may fluctuate depending on local e-waste vendor procurement agreements.",
+            f"Market availability and lead times for {', '.join(known_issues) if known_issues else 'components'}.",
+            "Long-term motherboard capacitor aging under continuous campus power fluctuations.",
         ]
 
         return {
             "recommended_pathway": best_pathway,
             "destination_action": destination,
             "suitability_score": score,
-            "confidence_level": confidence,
-            "reasons": reasons,
+            "confidence_level": ConfidenceLevel.HIGH if len(evidence_sources) > 0 else ConfidenceLevel.MEDIUM,
+            "reasons": [
+                f"Ranked #1 out of {len(scenarios)} eligible scenarios under {obj_name} weighting.",
+                f"Suitability score of {score}/100 outperforms alternative pathways.",
+                best_scenario.trade_offs,
+            ],
             "key_factors": key_factors,
             "alternatives_considered": alternatives,
+            "tradeoffs": best_scenario.trade_offs,
             "assumptions": assumptions,
             "uncertainties": uncertainties,
             "why_this_recommendation": why_text,
+            "evidence_sources": [s.model_dump() for s in evidence_sources],
         }

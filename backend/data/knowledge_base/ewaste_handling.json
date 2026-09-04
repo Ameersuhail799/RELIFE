@@ -1,0 +1,19 @@
+{
+  "category": "ewaste_handling",
+  "documents": [
+    {
+      "source_id": "WEEE-DIR-2012-19",
+      "source_title": "EU WEEE Directive & Basel Convention Compliance Framework",
+      "author": "European Commission / Basel Action Network (BAN)",
+      "excerpt": "Waste Electrical and Electronic Equipment (WEEE) containing brominated flame retardants, lead, mercury, or lithium batteries must be routed exclusively to certified R2/e-Stewards recyclers. Component recovery (harvesting RAM, functional SSDs, power supplies) must precede final material reclamation to maximize secondary resource loops.",
+      "keywords": ["weee", "recycling", "e_waste", "hazardous_materials", "component_recovery", "harvesting"]
+    },
+    {
+      "source_id": "INST-SURPLUS-003",
+      "source_title": "Institutional Sustainable Surplus Asset Disposition Policy",
+      "author": "University Sustainability & Procurement Directorate",
+      "excerpt": "Institutional hierarchy of disposition mandates: 1) Internal redeployment to meet open departmental hardware requests; 2) In-house repair and thermal rejuvenation; 3) Repurposing for dedicated lab/infrastructure nodes; 4) Modular component harvesting for the institutional repair spare-parts inventory; 5) Certified e-waste recycling. Decommissioning directly to scrap without circular evaluation is prohibited.",
+      "keywords": ["institutional_policy", "surplus", "redeployment_priority", "sustainability_policy"]
+    }
+  ]
+}

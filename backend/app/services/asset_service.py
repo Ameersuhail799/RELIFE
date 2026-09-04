@@ -154,7 +154,30 @@ def evaluate_asset_pathways(
         pathway=eligible_pathways[0] if eligible_pathways else CircularPathway.RECYCLE,
     )
 
-    # 7. AI Reasoning Layer (IBM Granite)
+    # 7. Match against Institutional Demands
+    from backend.app.models.demand import DemandRequest
+    from backend.app.services.demand_matcher import find_matches_for_asset
+    from backend.app.services.scenario_engine import build_scenario_comparison
+    from backend.app.schemas.ai import RAGSourceItem
+
+    demands = db.query(DemandRequest).all()
+    demand_matches = find_matches_for_asset(asset=asset, demands=demands)
+    best_match = demand_matches[0] if demand_matches else None
+    best_role = best_match.role if best_match and best_match.is_compatible else None
+    match_score = best_match.compatibility_score if best_match and best_match.is_compatible else 70.0
+
+    # 8. Scenario Evaluation & Decision Objective Scoring
+    scenarios = build_scenario_comparison(
+        asset_id=asset.asset_id,
+        device_type=asset.device_type,
+        eligible_pathways=eligible_pathways,
+        economics=economics,
+        objective=objective,
+        best_demand_role=best_role,
+        demand_compatibility_score=match_score,
+    )
+
+    # 9. AI Assessment & Structured RAG Reasoning Layer (IBM Granite)
     ai_context = {
         "asset": {
             "asset_id": asset.asset_id,
@@ -164,6 +187,8 @@ def evaluate_asset_pathways(
             "known_issues": asset.known_issues,
             "ram_gb": asset.ram_gb,
             "storage_type": asset.storage_type,
+            "functional_status": asset.functional_status,
+            "physical_condition": asset.physical_condition,
         },
         "capability_profile": capability_profile,
         "security_gate": security_result,
@@ -172,11 +197,14 @@ def evaluate_asset_pathways(
         "economics": economics.model_dump(),
         "environmental": environmental,
         "decision_objective": objective,
+        "scenarios": scenarios,
     }
 
+    ai_assessment = ai_provider.assess_asset(ai_context)
+    ai_context["ai_assessment"] = ai_assessment
     ai_output = ai_provider.generate_recommendation(ai_context)
 
-    # 8. Persist Recommendation to Database
+    # 10. Persist Recommendation to Database
     recommendation_id = f"REC-{uuid.uuid4().hex[:8].upper()}"
     db_rec = PathwayRecommendation(
         recommendation_id=recommendation_id,
@@ -205,7 +233,7 @@ def evaluate_asset_pathways(
     )
     db.add(db_rec)
 
-    # 9. Update Asset Lifecycle State -> PENDING_DECISION
+    # 11. Update Asset Lifecycle State -> PENDING_DECISION
     asset.lifecycle_state = AssetLifecycleState.PENDING_DECISION.value
     db.commit()
 
@@ -220,6 +248,7 @@ def evaluate_asset_pathways(
             "destination_action": db_rec.destination_action,
             "confidence": db_rec.confidence_level,
             "suitability_score": db_rec.suitability_score,
+            "decision_objective": objective.value,
         },
     )
 
@@ -231,6 +260,10 @@ def evaluate_asset_pathways(
             trade_off_summary=a["trade_off_summary"],
         )
         for a in ai_output["alternatives_considered"]
+    ]
+
+    evidence_items = [
+        RAGSourceItem(**s) for s in ai_output.get("evidence_sources", [])
     ]
 
     return EvaluationResponse(
@@ -245,6 +278,10 @@ def evaluate_asset_pathways(
         suitability_score=ai_output["suitability_score"],
         economics=economics,
         environmental=environmental,
+        ai_assessment=ai_assessment,
+        scenario_comparison=scenarios,
+        tradeoffs=ai_output.get("tradeoffs"),
+        evidence_sources=evidence_items,
         confidence_level=ai_output["confidence_level"],
         reasons=ai_output["reasons"],
         key_factors=ai_output["key_factors"],

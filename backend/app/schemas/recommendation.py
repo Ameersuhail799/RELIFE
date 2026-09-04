@@ -9,6 +9,7 @@ from backend.app.core.enums import (
 from backend.app.core.security_gate import SecurityGateResult
 from backend.app.schemas.capability import DeviceCapabilityProfile
 from backend.app.schemas.economics import EconomicEvaluation, EnvironmentalEstimate
+from backend.app.schemas.ai import AIAssessmentResult, ScenarioItem, RAGSourceItem
 
 
 class EvaluationRequest(BaseModel):
@@ -39,6 +40,12 @@ class EvaluationResponse(BaseModel):
     # Deterministic calculation packages
     economics: EconomicEvaluation
     environmental: EnvironmentalEstimate
+
+    # AI Assessment & Scenario Intelligence (Milestone 3 additions)
+    ai_assessment: Optional[AIAssessmentResult] = None
+    scenario_comparison: List[ScenarioItem] = []
+    tradeoffs: Optional[str] = None
+    evidence_sources: List[RAGSourceItem] = []
 
     # AI Reasoning & Explainability Output
     confidence_level: ConfidenceLevel

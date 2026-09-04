@@ -1,0 +1,19 @@
+{
+  "category": "circular_electronics",
+  "documents": [
+    {
+      "source_id": "CIRCULAR-SDG12-001",
+      "source_title": "UN SDG 12: Circular Economy Strategies for ICT Equipment",
+      "author": "United Nations Environment Programme (UNEP) / ITU",
+      "excerpt": "Up to 80% of a computer's total lifecycle carbon emissions are emitted during the manufacturing, raw material extraction, and semiconductor fabrication phases. Extending active operational life from 3 years to 6 years through modular repair, refurbishment, or second-life repurposing reduces annualized carbon footprint by approximately 45% and conserves critical rare earth metals.",
+      "keywords": ["sdg12", "carbon_avoidance", "embodied_carbon", "life_extension", "circular_economy"]
+    },
+    {
+      "source_id": "REPURPOSE-SOP-005",
+      "source_title": "Repurposing Decommissioned Hardware for Campus Infrastructure",
+      "author": "Open Source Campus Lab Consortium",
+      "excerpt": "Retired desktop towers and laptops with broken displays or degraded batteries are ideal for Linux-based headless servers, HomeAssistant lab automation, DNS sinkholes (Pi-hole), local network caching proxies, and Docker microservice runners. Repurposing achieves maximum hardware utilization with zero procurement overhead.",
+      "keywords": ["repurpose", "headless_server", "linux_lab", "kiosk", "iot_gateway", "docker_runner"]
+    }
+  ]
+}
