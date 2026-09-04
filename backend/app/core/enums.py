@@ -89,3 +89,18 @@ class ConfidenceLevel(str, Enum):
     MEDIUM = "MEDIUM"
     LOW = "LOW"
     PROVISIONAL = "PROVISIONAL"
+
+
+class DemandPriority(str, Enum):
+    CRITICAL = "CRITICAL"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
+
+
+class MobilityRequirement(str, Enum):
+    PORTABLE = "PORTABLE"
+    DESK_BOUND_OK = "DESK_BOUND_OK"
+    STATIONARY_ONLY = "STATIONARY_ONLY"
+    ANY = "ANY"
+

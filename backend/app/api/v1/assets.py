@@ -69,3 +69,11 @@ def update_sanitization(
     )
 
     return asset
+
+
+@router.post("/seed-simulated", status_code=status.HTTP_200_OK)
+def seed_simulated_assets(db: Session = Depends(get_db)):
+    from backend.app.services.portfolio_service import seed_simulated_data
+    result = seed_simulated_data(db)
+    return result
+
