@@ -1,3 +1,4 @@
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
@@ -8,6 +9,22 @@ from backend.app.services.passport_service import log_passport_event
 import datetime
 
 router = APIRouter(prefix="/assets", tags=["assets"])
+
+
+@router.get("", response_model=List[AssetResponse])
+def list_assets(
+    status: Optional[str] = None,
+    department: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+):
+    query = db.query(Asset)
+    if status:
+        query = query.filter(Asset.lifecycle_status == status)
+    if department:
+        query = query.filter(Asset.department.ilike(f"%{department}%"))
+    return query.offset(skip).limit(limit).all()
 
 
 @router.post("", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
