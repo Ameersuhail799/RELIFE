@@ -2,16 +2,18 @@
   "category": "media_sanitization",
   "documents": [
     {
-      "source_id": "NIST-800-88-R1",
-      "source_title": "NIST SP 800-88 Rev 1: Guidelines for Media Sanitization",
+      "source_id": "NIST-SP-800-88-R2",
+      "source_title": "NIST SP 800-88 Rev. 2: Guidelines for Media Sanitization (September 2025)",
       "author": "National Institute of Standards and Technology (NIST)",
-      "excerpt": "Clear, Purge, and Destroy are the three recognized levels of media sanitization. Clear involves overwriting user-addressable locations using logical interfaces. Purge renders target data recovery infeasible using state-of-the-art laboratory techniques (e.g. Cryptographic Erase / Secure Erase for ATA/NVMe). Destroy physically shreds or degausses media. Direct internal reuse or donation of electronic media requires verified Clear or Purge with recorded technician certificate.",
-      "keywords": ["nist_800_88", "sanitization", "crypto_erase", "overwrite", "purge", "clear", "data_security"]
+      "publication_date": "September 2025",
+      "excerpt": "NIST SP 800-88 Rev. 2 (Published September 2025) provides authoritative guidelines for media sanitization, defining three fundamental methods: Clear, Purge, and Destroy. Clear applies logical techniques across all user-addressable storage locations using standard read/write commands. Purge executes controller-level hardware commands (such as Cryptographic Erase, NVMe Format with User Data Erase, or ATA Sanitize) rendering target data recovery infeasible even using state-of-the-art laboratory techniques. Destroy physically shreds, incinerates, or degausses media. For institutional second-life reuse or transfer, storage media must have verified Purge or Clear recorded with auditable technician verification.",
+      "keywords": ["nist_800_88", "nist_sp_800_88_r2", "sanitization", "crypto_erase", "overwrite", "purge", "clear", "data_security", "nvme_sanitize"]
     },
     {
       "source_id": "SEC-SOP-002",
-      "source_title": "Institutional Storage Disposition & Chain of Custody",
+      "source_title": "Institutional Storage Disposition & Chain of Custody Standard Operating Procedure",
       "author": "Campus Cyber-Security Governance Committee",
+      "publication_date": "2024",
       "excerpt": "Hardware assets containing persistent magnetic or flash storage may not leave primary department ownership or be redeployed to other units without an auditable wipe log. If automated cryptographic sanitization fails or media contains uncorrectable bad blocks, the drive must be removed, logged in inventory, and physically destroyed via a certified degausser or cross-cut shredder.",
       "keywords": ["chain_of_custody", "drive_removal", "sanitization_policy", "data_leak_prevention"]
     }

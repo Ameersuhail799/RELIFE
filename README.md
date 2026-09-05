@@ -24,7 +24,7 @@ However, organizations lack an intelligent, secure, and auditable system to eval
 
 > ⚠️ **Core Design Principle:**  
 > ReLife is a **decision-support tool**, **NOT** an autonomous system making irreversible actions.  
-> **Hard security gates** (e.g. NIST 800-88 sanitization verification) and **technical minimums** are strictly deterministic. AI (LLM / RAG) is used for contextual condition interpretation, creative repurposing suggestions, and explainable trade-off summaries. Every circular pathway requires **Human-in-the-Loop approval**.
+> **Hard security gates** (e.g. NIST SP 800-88 Rev. 2 sanitization verification) and **technical minimums** are strictly deterministic. AI (LLM / RAG) is used for contextual condition interpretation, creative repurposing suggestions, and explainable trade-off summaries. Every circular pathway requires **Human-in-the-Loop approval**.
 
 ---
 

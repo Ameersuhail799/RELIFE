@@ -353,3 +353,50 @@ def test_10_confidence_and_uncertainty_fields_present(client):
     assert data["confidence_level"] in ("HIGH", "MEDIUM", "LOW", "PROVISIONAL")
     assert isinstance(data["assumptions"], list) and len(data["assumptions"]) > 0
     assert isinstance(data["uncertainties"], list) and len(data["uncertainties"]) > 0
+
+
+def test_11_nist_sp_800_88_r2_metadata_and_security_gate_invariance(client):
+    """Test 11: RAG retrieves updated NIST SP 800-88 Rev. 2 (Sept 2025) metadata, but knowledge presence never bypasses security gate."""
+    # 1. Verify RAG retrieval of updated NIST Rev. 2 metadata
+    rag_engine.load_knowledge_base()
+    sources = rag_engine.retrieve_relevant_knowledge(query="nist_sp_800_88_r2 sanitization purge crypto_erase", category="media_sanitization", top_k=2)
+    assert len(sources) >= 1
+    nist_doc = next((s for s in sources if s.source_id == "NIST-SP-800-88-R2"), None)
+    assert nist_doc is not None
+    assert "NIST SP 800-88 Rev. 2" in nist_doc.source_title
+    assert "September 2025" in nist_doc.source_title
+    assert "Clear, Purge, and Destroy" in nist_doc.excerpt
+    assert nist_doc.category == "media_sanitization"
+
+    # 2. Invariance check: presence of NIST guidance in RAG does NOT grant sanitization clearance
+    asset_payload = {
+        "serial_number": "SN-NIST-R2-GATE",
+        "device_type": "laptop",
+        "manufacturer": "Dell",
+        "model": "Latitude 5420",
+        "purchase_year": 2022,
+        "cpu_model": "Intel Core i5-1145G7",
+        "cpu_cores": 4,
+        "ram_gb": 16,
+        "storage_gb": 512,
+        "storage_type": "nvme_ssd",
+        "storage_present": True,
+        "sanitization_method": "none",
+        "sanitization_status": "pending",
+        "sanitization_verified": False,  # UNVERIFIED
+        "physical_condition": "grade_a",
+        "functional_status": "fully_functional",
+        "department": "CS",
+        "location": "Lab 1",
+    }
+    res = client.post("/api/v1/assets", json=asset_payload)
+    asset_id = res.json()["asset_id"]
+
+    eval_res = client.post("/api/v1/evaluate", json={"asset_id": asset_id})
+    data = eval_res.json()
+
+    # Verify that security gate strictly blocks reuse despite NIST RAG source presence
+    assert data["security_gate"]["direct_reuse_permitted"] is False
+    assert "DIRECT_REUSE" not in data["eligible_pathways"]
+    assert "DIRECT_REUSE" not in [s["pathway"] for s in data["scenario_comparison"]]
+

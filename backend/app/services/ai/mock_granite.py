@@ -195,7 +195,7 @@ class MockGraniteProvider(LLMProvider):
 
         assumptions = [
             "Replacement parts and consumables conform to OEM or certified third-party specifications.",
-            "Institutional technicians adhere to ESD safe handling and NIST SP 800-88 sanitization protocols.",
+            "Institutional technicians adhere to ESD safe handling and NIST SP 800-88 Rev. 2 sanitization protocols.",
             "Environmental metrics are provisional prototype estimates based on literature LCA averages, not measured carbon accounts.",
         ]
 
