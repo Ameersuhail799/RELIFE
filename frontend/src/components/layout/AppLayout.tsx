@@ -41,7 +41,7 @@ export const AppLayout: React.FC = () => {
   );
 
   return (
-    <div className="flex min-h-screen bg-[#090d16] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-[#090d16] text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-200">
       {/* Sidebar Navigation for Desktop */}
       <aside className="hidden lg:flex w-64 flex-col border-r border-slate-800/80 bg-[#0c111d]/90 backdrop-blur-sm z-30">
         {/* Brand Header */}
@@ -146,25 +146,25 @@ export const AppLayout: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+      <div className="flex flex-1 flex-col min-w-0 max-w-full overflow-x-hidden">
         {/* Top Navbar */}
-        <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-800/80 bg-[#090d16]/80 backdrop-blur-md px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-20 flex h-16 w-full shrink-0 items-center justify-between border-b border-slate-800/80 bg-[#090d16]/80 backdrop-blur-md px-3 sm:px-6 lg:px-8 gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden -ml-1 p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
+              className="lg:hidden p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 shrink-0"
               aria-label="Open sidebar"
             >
-              <Menu size={20} />
+              <Menu size={18} />
             </button>
-            <div>
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-white flex items-center gap-2">
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base md:text-lg font-semibold tracking-tight text-white truncate">
                 {currentNav?.label || 'Platform'}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <SimulatedBanner />
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 border border-slate-800/80 bg-slate-900/60 rounded-full px-3 py-1">
               <Server size={13} className="text-emerald-400" />
@@ -175,7 +175,7 @@ export const AppLayout: React.FC = () => {
         </header>
 
         {/* Page Viewport */}
-        <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto overflow-x-hidden">
           <Outlet />
         </main>
       </div>

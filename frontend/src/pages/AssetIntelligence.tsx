@@ -7,9 +7,9 @@ export const AssetIntelligence: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Cpu className="text-emerald-400" size={22} />
-            Asset Intelligence & Decision Assessment
+          <h2 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-2 flex-wrap">
+            <Cpu className="text-emerald-400 shrink-0" size={20} />
+            <span>Asset Intelligence & Decision Assessment</span>
           </h2>
           <p className="text-sm text-slate-400 mt-1">
             Deep-dive technical capability evaluation, NIST SP 800-88 Rev. 2 gate audit, and explainable AI recommendations.
