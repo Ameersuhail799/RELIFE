@@ -12,8 +12,10 @@ import {
   X,
   Server,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { SimulatedBanner } from '../common/SimulatedBanner';
+import { GovernanceDrawer } from '../common/GovernanceDrawer';
 
 interface NavItem {
   to: string;
@@ -34,6 +36,7 @@ const navItems: NavItem[] = [
 
 export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [governanceOpen, setGovernanceOpen] = useState(false);
   const location = useLocation();
 
   const currentNav = navItems.find((item) =>
@@ -93,15 +96,21 @@ export const AppLayout: React.FC = () => {
 
         {/* Footer Governance Card */}
         <div className="border-t border-slate-800/80 p-4 space-y-2">
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-[11px] space-y-1">
-            <div className="flex items-center justify-between text-slate-300 font-medium">
-              <span>Governance Core</span>
+          <button
+            onClick={() => setGovernanceOpen(true)}
+            className="w-full text-left rounded-lg border border-slate-800 bg-slate-900/60 p-3 text-[11px] space-y-1 hover:border-emerald-500/40 hover:bg-slate-800/60 transition-colors cursor-pointer group"
+          >
+            <div className="flex items-center justify-between text-slate-300 font-medium group-hover:text-emerald-300">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={13} className="text-emerald-400" />
+                Governance Core
+              </span>
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
             </div>
-            <p className="text-slate-300 text-[10px] leading-relaxed">
+            <p className="text-slate-400 text-[10px] leading-relaxed">
               Security gate enforced deterministically. Human review required for all dispositions.
             </p>
-          </div>
+          </button>
         </div>
       </aside>
 
@@ -165,6 +174,13 @@ export const AppLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <button
+              onClick={() => setGovernanceOpen(true)}
+              className="hidden md:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-slate-900/60 hover:bg-slate-800 border border-slate-800 rounded-lg px-2.5 py-1 transition-colors cursor-pointer"
+            >
+              <ShieldCheck size={14} className="text-emerald-400" />
+              <span>Governance</span>
+            </button>
             <SimulatedBanner />
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 border border-slate-800/80 bg-slate-900/60 rounded-full px-3 py-1">
               <Server size={13} className="text-emerald-400" />
@@ -178,6 +194,9 @@ export const AppLayout: React.FC = () => {
         <main className="flex-1 overflow-y-auto px-3 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto overflow-x-hidden">
           <Outlet />
         </main>
+
+        {/* Governance & Responsible AI Drawer */}
+        <GovernanceDrawer isOpen={governanceOpen} onClose={() => setGovernanceOpen(false)} />
       </div>
     </div>
   );

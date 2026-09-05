@@ -350,10 +350,15 @@ export interface AssetPassportEvent {
 export interface AssetPassportResponse {
   asset_id: string;
   serial_number: string;
-  device_summary: string;
-  lifecycle_status: string;
-  total_events_logged: number;
-  created_at: string;
+  device_type?: string;
+  manufacturer?: string;
+  model?: string;
+  device_summary?: string;
+  lifecycle_state?: string;
+  lifecycle_status?: string;
+  total_events?: number;
+  total_events_logged?: number;
+  created_at?: string;
   events: AssetPassportEvent[];
 }
 
