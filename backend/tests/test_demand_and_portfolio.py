@@ -458,3 +458,34 @@ def test_10_impact_aggregation_and_seed_dataset(client):
     assert match_data["compatible_matches_count"] >= 1
     # Check that matches are ranked (first match should be compatible with highest priority)
     assert match_data["matches"][0]["is_compatible"] is True
+
+
+def test_11_get_candidates_for_demand(client):
+    """Test 11: GET /api/v1/demand/{demand_id}/candidates returns ranked candidate assets."""
+    client.post("/api/v1/assets/seed-simulated")
+    
+    # List demands to pick an active demand_id
+    demands_res = client.get("/api/v1/demand")
+    assert demands_res.status_code == status.HTTP_200_OK
+    demands = demands_res.json()
+    assert len(demands) > 0
+    target_demand = demands[0]
+    demand_id = target_demand["demand_id"]
+
+    # Query candidates for this demand
+    candidates_res = client.get(f"/api/v1/demand/{demand_id}/candidates")
+    assert candidates_res.status_code == status.HTTP_200_OK
+    data = candidates_res.json()
+
+    assert data["demand_id"] == demand_id
+    assert data["department"] == target_demand["department"]
+    assert data["total_assets_evaluated"] >= 30
+    assert "candidates" in data
+    assert len(data["candidates"]) == data["total_assets_evaluated"]
+
+    # Verify first candidate has reasons and score
+    first_candidate = data["candidates"][0]
+    assert "compatibility_score" in first_candidate
+    assert "reasons" in first_candidate
+    assert "security_eligibility_status" in first_candidate
+

@@ -30,7 +30,9 @@ export const App: React.FC = () => {
             <Route path="assets" element={<AssetIntelligence />} />
             <Route path="assets/:id" element={<AssetIntelligence />} />
             <Route path="scenarios" element={<ScenarioLab />} />
+            <Route path="scenario-lab" element={<Navigate to="/scenarios" replace />} />
             <Route path="demand" element={<DemandMatching />} />
+            <Route path="demand-matching" element={<Navigate to="/demand" replace />} />
             <Route path="approvals" element={<ApprovalCenter />} />
             <Route path="passport" element={<CircularPassport />} />
             <Route path="passport/:id" element={<CircularPassport />} />

@@ -11,8 +11,14 @@ from backend.app.schemas.demand import (
     DemandCreate,
     DemandResponse,
     AssetDemandMatchesResponse,
+    AssetMatchForDemand,
+    DemandCandidatesResponse,
 )
-from backend.app.services.demand_matcher import find_matches_for_asset, PRIORITY_RANKS
+from backend.app.services.demand_matcher import (
+    find_matches_for_asset,
+    evaluate_asset_against_demand,
+    PRIORITY_RANKS,
+)
 
 router = APIRouter(prefix="/demand", tags=["demand"])
 
@@ -80,3 +86,61 @@ def get_demand_matches_for_asset(asset_id: str, db: Session = Depends(get_db)):
         compatible_matches_count=compatible_count,
         matches=matches,
     )
+
+
+@router.get("/{demand_id}/candidates", response_model=DemandCandidatesResponse)
+def get_candidates_for_demand(demand_id: str, db: Session = Depends(get_db)):
+    demand = db.query(DemandRequest).filter(DemandRequest.demand_id == demand_id).first()
+    if not demand:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Demand '{demand_id}' not found.")
+
+    assets = db.query(Asset).all()
+    candidates: List[AssetMatchForDemand] = []
+
+    for asset in assets:
+        match_item = evaluate_asset_against_demand(asset=asset, demand=demand)
+        candidates.append(
+            AssetMatchForDemand(
+                asset_id=asset.asset_id,
+                serial_number=asset.serial_number,
+                device_type=asset.device_type,
+                manufacturer=asset.manufacturer,
+                model=asset.model,
+                purchase_year=asset.purchase_year,
+                cpu_model=asset.cpu_model,
+                cpu_cores=asset.cpu_cores,
+                ram_gb=asset.ram_gb,
+                storage_gb=asset.storage_gb,
+                storage_type=asset.storage_type,
+                battery_health_percent=asset.battery_health_percent,
+                physical_condition=asset.physical_condition,
+                functional_status=asset.functional_status,
+                department=asset.department,
+                location=asset.location,
+                storage_present=asset.storage_present,
+                sanitization_verified=asset.sanitization_verified,
+                compatibility_score=match_item.compatibility_score,
+                is_compatible=match_item.is_compatible,
+                reasons=match_item.reasons,
+                unmet_requirements=match_item.unmet_requirements,
+                security_eligibility_status=match_item.security_eligibility_status,
+                recommended_action=match_item.recommended_action,
+            )
+        )
+
+    # Sort candidates: compatible first, then compatibility_score descending
+    candidates.sort(key=lambda c: (1 if c.is_compatible else 0, c.compatibility_score), reverse=True)
+    compatible_count = sum(1 for c in candidates if c.is_compatible)
+
+    return DemandCandidatesResponse(
+        demand_id=demand.demand_id,
+        department=demand.department,
+        role=demand.role,
+        quantity_needed=demand.quantity_needed,
+        quantity_fulfilled=demand.quantity_fulfilled,
+        remaining_quantity=demand.remaining_quantity,
+        total_assets_evaluated=len(assets),
+        compatible_assets_count=compatible_count,
+        candidates=candidates,
+    )
+

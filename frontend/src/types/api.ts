@@ -115,14 +115,23 @@ export interface RAGSourceItem {
 export interface ScenarioItem {
   pathway: CircularPathway;
   destination_action: DestinationAction;
+  is_eligible: boolean;
   suitability_score: number;
-  estimated_repair_cost: number;
+  deterministic_cost: number;
   estimated_residual_value: number;
-  net_economic_value: number;
-  estimated_co2e_savings_kg: number;
+  demand_match?: string | null;
   useful_life_extension_years: number;
-  economic_viability: string;
+  estimated_co2e_avoided_kg: number;
+  estimated_ewaste_diverted_kg: number;
   trade_offs: string;
+  risks_and_uncertainties: string[];
+  rank?: number;
+  is_recommended?: boolean;
+  // Legacy aliases
+  estimated_repair_cost?: number;
+  net_economic_value?: number;
+  estimated_co2e_savings_kg?: number;
+  economic_viability?: string;
 }
 
 export interface AlternativeOption {
@@ -224,16 +233,57 @@ export interface DemandItem {
   role: string;
   quantity_needed: number;
   quantity_fulfilled: number;
+  remaining_quantity?: number;
   priority: string;
   min_compute_tier: string;
   min_ram_gb: number;
   min_storage_gb: number;
   preferred_storage_type?: string | null;
-  required_os: string;
+  required_os?: string[] | string;
   required_mobility: string;
-  required_display: string;
-  required_network: string;
+  required_display?: string | null;
+  required_network?: string[] | string;
   notes?: string | null;
+  created_at?: string;
+}
+
+export interface AssetMatchForDemand {
+  asset_id: string;
+  serial_number: string;
+  device_type: string;
+  manufacturer: string;
+  model: string;
+  purchase_year: number;
+  cpu_model: string;
+  cpu_cores: number;
+  ram_gb: number;
+  storage_gb: number;
+  storage_type: string;
+  battery_health_percent?: number | null;
+  physical_condition: string;
+  functional_status: string;
+  department: string;
+  location: string;
+  storage_present: boolean;
+  sanitization_verified: boolean;
+  compatibility_score: number;
+  is_compatible: boolean;
+  reasons: string[];
+  unmet_requirements: string[];
+  security_eligibility_status: string;
+  recommended_action: string;
+}
+
+export interface DemandCandidatesResponse {
+  demand_id: string;
+  department: string;
+  role: string;
+  quantity_needed: number;
+  quantity_fulfilled: number;
+  remaining_quantity: number;
+  total_assets_evaluated: number;
+  compatible_assets_count: number;
+  candidates: AssetMatchForDemand[];
 }
 
 export interface RecommendationItem {

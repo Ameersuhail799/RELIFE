@@ -7,6 +7,7 @@ import type {
   ApprovalDecisionRequest,
   ApprovalDecisionResponse,
   DemandItem,
+  DemandCandidatesResponse,
   EvaluationResponse,
   ImpactSummaryResponse,
   RecommendationItem,
@@ -99,6 +100,11 @@ export const api = {
   async getDemandMatches(assetId: string): Promise<AssetDemandMatchesResponse> {
     return request<AssetDemandMatchesResponse>(`/demand/matches/${assetId}`);
   },
+
+  async getDemandCandidates(demandId: string): Promise<DemandCandidatesResponse> {
+    return request<DemandCandidatesResponse>(`/demand/${demandId}/candidates`);
+  },
+
 
   // Approvals & Human in the Loop
   async getApprovals(status?: string): Promise<RecommendationItem[]> {

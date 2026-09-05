@@ -52,3 +52,42 @@ class AssetDemandMatchesResponse(BaseModel):
     total_demands_evaluated: int
     compatible_matches_count: int
     matches: List[DemandMatchItem]
+
+
+class AssetMatchForDemand(BaseModel):
+    asset_id: str
+    serial_number: str
+    device_type: str
+    manufacturer: str
+    model: str
+    purchase_year: int
+    cpu_model: str
+    cpu_cores: int
+    ram_gb: int
+    storage_gb: int
+    storage_type: str
+    battery_health_percent: Optional[float] = None
+    physical_condition: str
+    functional_status: str
+    department: str
+    location: str
+    storage_present: bool
+    sanitization_verified: bool
+    compatibility_score: float
+    is_compatible: bool
+    reasons: List[str]
+    unmet_requirements: List[str]
+    security_eligibility_status: str
+    recommended_action: str
+
+
+class DemandCandidatesResponse(BaseModel):
+    demand_id: str
+    department: str
+    role: str
+    quantity_needed: int
+    quantity_fulfilled: int
+    remaining_quantity: int
+    total_assets_evaluated: int
+    compatible_assets_count: int
+    candidates: List[AssetMatchForDemand]
