@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from backend.app.core.database import get_db
 from backend.app.models.asset import Asset
 from backend.app.schemas.asset import AssetCreate, AssetResponse, AssetUpdateSanitization
-from backend.app.services.asset_service import register_asset
+from backend.app.schemas.recommendation import EvaluationResponse
+from backend.app.services.asset_service import register_asset, evaluate_asset_pathways
 from backend.app.services.passport_service import log_passport_event
+from backend.app.core.enums import DecisionObjective
 import datetime
 
 router = APIRouter(prefix="/assets", tags=["assets"])
@@ -21,7 +23,7 @@ def list_assets(
 ):
     query = db.query(Asset)
     if status:
-        query = query.filter(Asset.lifecycle_status == status)
+        query = query.filter(Asset.lifecycle_state == status)
     if department:
         query = query.filter(Asset.department.ilike(f"%{department}%"))
     return query.offset(skip).limit(limit).all()
@@ -47,6 +49,23 @@ def get_asset(asset_id: str, db: Session = Depends(get_db)):
             detail=f"Asset '{asset_id}' not found.",
         )
     return asset
+
+
+@router.post("/{asset_id}/evaluate", response_model=EvaluationResponse)
+def evaluate_specific_asset(
+    asset_id: str,
+    objective: Optional[DecisionObjective] = DecisionObjective.BALANCED,
+    db: Session = Depends(get_db),
+):
+    try:
+        return evaluate_asset_pathways(
+            db=db,
+            asset_id=asset_id,
+            objective=objective,
+            actor="analyst_api",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.put("/{asset_id}/sanitization", response_model=AssetResponse)

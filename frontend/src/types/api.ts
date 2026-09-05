@@ -58,38 +58,50 @@ export type SanitizationStatus =
 export type ComputeTier = 'ENTRY' | 'MID' | 'PERFORMANCE' | 'LEGACY';
 
 export interface SecurityGateResult {
-  cleared: boolean;
+  storage_present: boolean;
+  sanitization_verified: boolean;
+  sanitization_status: SanitizationStatus;
+  sanitization_method: SanitizationMethod;
+  verification_reference?: string | null;
   direct_reuse_permitted: boolean;
-  disqualification_reasons: string[];
-  warnings: string[];
-  audit_timestamp: string;
+  blocking_reasons: string[];
+  notes: string;
+  cleared?: boolean;
 }
 
 export interface DeviceCapabilityProfile {
   compute_tier: ComputeTier;
-  form_factor_mobility: string;
-  graphics_capability: string;
-  memory_capacity_gb: number;
+  mobility_profile: string;
+  ram_gb: number;
   storage_speed_class: string;
-  network_interfaces: string[];
+  graphics_capability: string;
   os_compatibility: string[];
   display_support: string;
+  network_interfaces: string[];
+  summary: string;
 }
 
 export interface EconomicEvaluation {
   estimated_repair_cost: number;
   estimated_residual_value: number;
-  avoided_new_cost: number;
+  estimated_avoided_cost: number;
   economic_viability_flag: string;
-  is_estimate: boolean;
+  valuation_type?: string;
+  methodology_notes?: string;
+  calculation_breakdown?: Record<string, any>;
+  is_estimate?: boolean;
 }
 
 export interface EnvironmentalEstimate {
-  estimated_embodied_co2e_avoided_kg: number;
-  estimated_ewaste_diverted_kg: number;
-  estimated_operational_life_extension_years: number;
+  embodied_co2e_kg: number;
+  ewaste_mass_kg: number;
+  annual_avoided_co2e_kg: number;
+  estimated_life_extension_years: number;
+  total_estimated_co2e_avoided_kg: number;
+  confidence: ConfidenceLevel;
   is_estimate: boolean;
-  assumptions_version: string;
+  disclaimer: string;
+  source_version: string;
 }
 
 export interface RAGSourceItem {
@@ -154,7 +166,8 @@ export interface Asset {
   known_issues: string[];
   department: string;
   location: string;
-  lifecycle_status: AssetLifecycleState;
+  lifecycle_state: AssetLifecycleState;
+  lifecycle_status?: AssetLifecycleState;
   created_at: string;
   updated_at: string;
 }
@@ -294,13 +307,31 @@ export interface AssetPassportResponse {
   events: AssetPassportEvent[];
 }
 
+export interface PathwayBreakdown {
+  direct_reuse: number;
+  repair: number;
+  refurbish: number;
+  repurpose: number;
+  component_recovery: number;
+  recycle: number;
+}
+
 export interface ImpactSummaryResponse {
+  total_assets_registered: number;
   total_assets_assessed: number;
-  total_avoided_purchase_cost_inr: number;
-  total_ewaste_diverted_kg: number;
-  total_co2e_avoided_kg: number;
-  total_operational_life_extension_years: number;
-  pathway_breakdown: Record<string, number>;
-  assumptions_version: string;
+  total_assets_eligible_circular: number;
+  pathway_breakdown: PathwayBreakdown;
+  total_estimated_purchase_cost_avoided: number;
+  total_estimated_ewaste_diverted_kg: number;
+  total_estimated_co2e_avoided_kg: number;
+  total_estimated_useful_life_extension_years: number;
   is_estimate: boolean;
+  confidence: string;
+  disclaimer: string;
+  assumptions_version: string;
+  // Fallbacks for legacy references
+  total_avoided_purchase_cost_inr?: number;
+  total_ewaste_diverted_kg?: number;
+  total_co2e_avoided_kg?: number;
+  total_operational_life_extension_years?: number;
 }
