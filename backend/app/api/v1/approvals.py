@@ -46,7 +46,13 @@ def submit_decision(
             detail=str(sge),
         )
     except ValueError as ve:
+        err_msg = str(ve)
+        if "not found" in err_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=err_msg,
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(ve),
+            detail=err_msg,
         )

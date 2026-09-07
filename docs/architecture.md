@@ -148,8 +148,14 @@ erDiagram
 ## 4. API Boundaries (REST)
 
 - `POST /api/v1/assets`: Register asset into inventory (`lifecycle_state = REGISTERED`).
-- `GET /api/v1/assets/{asset_id}`: Retrieve asset profile + Circular Asset Passport audit history.
-- `POST /api/v1/assets/{asset_id}/sanitization`: Log sanitization details and verification.
-- `POST /api/v1/assets/{asset_id}/evaluate`: Execute end-to-end assessment (Security Gate $\rightarrow$ Eligibility $\rightarrow$ Economics $\rightarrow$ AI Ranking & Explanation).
-- `POST /api/v1/approvals/{recommendation_id}/decide`: Submit human decision. Programmatically enforces that security gates cannot be bypassed.
-- `GET /api/v1/impact/summary`: Aggregate estimated carbon, e-waste, and cost avoidance metrics.
+- `GET /api/v1/assets`: List all registered inventory assets with filtering.
+- `GET /api/v1/assets/{asset_id}`: Retrieve single asset specifications and lifecycle state.
+- `POST /api/v1/assets/seed-simulated`: Reset and re-seed portfolio with 30 simulated institutional IT assets.
+- `POST /api/v1/evaluate`: Execute end-to-end assessment (Security Gate $\rightarrow$ Eligibility $\rightarrow$ Economics $\rightarrow$ AI Ranking & Explanation).
+- `POST /api/v1/evaluate/scenarios`: Evaluate and compare circular scenarios across decision objectives.
+- `GET /api/v1/demand`: Retrieve active institutional demand requests across departments.
+- `GET /api/v1/demand/{demand_id}/candidates`: Algorithmic capability-based matching of catalog assets to demand.
+- `GET /api/v1/approvals`: List recommendations awaiting human-in-the-loop review.
+- `POST /api/v1/approvals/{recommendation_id}/decide`: Submit human decision (Approve, Override, Reject). Programmatically enforces non-bypassable security gate.
+- `GET /api/v1/passport/{asset_id}`: Retrieve immutable chain-of-custody event trail for an asset.
+- `GET /api/v1/impact/summary`: Aggregate portfolio-level estimated carbon, e-waste, and cost avoidance metrics.

@@ -114,7 +114,7 @@ Rather than delegating autonomous or unverified decisions to external models, IB
 All BOB-orchestrated components and developer modifications are verified through comprehensive automated pytest suites:
 - Security gate verification (`backend/tests/test_security_gate.py`): 7 tests
 - End-to-end vertical slice (`backend/tests/test_vertical_slice.py`): 3 tests
-- Demand matching & portfolio aggregation (`backend/tests/test_demand_and_portfolio.py`): 10 tests
+- Demand matching & portfolio aggregation (`backend/tests/test_demand_and_portfolio.py`): 11 tests
 - AI, RAG, and scenario intelligence (`backend/tests/test_ai_and_scenarios.py`): 11 tests
 
-**Total Test Suite: 31 tests passing (100% pass rate)**.
+**Total Test Suite: 32 tests passing (100% pass rate)**.
