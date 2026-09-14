@@ -12,7 +12,7 @@
 | :--- | :--- | :--- | :--- |
 | **Scenario A** | Lenovo ThinkPad T490 (`SIM-LAP-001`) | **Secure Direct Reuse** | High-spec functional laptop with verified cryptographic sanitization is cleared through the security gate and approved for internal CS lab redeployment. |
 | **Scenario B** | Dell Latitude 7490 (`SIM-LAP-002`) | **Repair + Redeploy with Security Gate Block** | Hardware has an unverified storage drive. User attempts to override to direct reuse $\rightarrow$ blocked with **HTTP 403 Forbidden**. Valid repair pathway proceeds safely. |
-| **Scenario C** | HP ProDesk 600 G4 (`SIM-DSK-001`) | **Repurpose & Component Recovery** | Desktop with severe motherboard/display failure is diverted from landfill into secondary campus Linux infrastructure and internal RAM/SSD harvesting. |
+| **Scenario C** | HP ProDesk 600 G3 (`SIM-DESK-016`) | **Repurpose & Component Recovery** | Desktop with severe motherboard/display failure is diverted from landfill into secondary campus Linux infrastructure and internal RAM/SSD harvesting. |
 
 ---
 
@@ -116,12 +116,12 @@
 ## Scenario C: Repurpose & Component Recovery (Hardware with Structural Defect)
 
 ### 1. Starting State
-- **Asset ID:** `SIM-DSK-001`
-- **Device Details:** HP ProDesk 600 G4 Desktop (Intel Core i5-8500, 16GB RAM, 512GB NVMe SSD, Grade C, non-functional display output / power fault).
+- **Asset ID:** `SIM-DESK-016`
+- **Device Details:** HP ProDesk 600 G3 Desktop (Intel Core i5-6500, 16GB RAM, 512GB SATA SSD, Grade Damaged, non-functional motherboard failure / chassis cracked).
 - **Condition:** Non-functional for primary desktop workstation use.
 
 ### 2. User Action
-1. Open `/scenarios` and select `SIM-DSK-001`.
+1. Open `/scenarios` and select `SIM-DESK-016`.
 2. Inspect the **Eligible Pathway Scenarios** list.
 3. Observe that `DIRECT_REUSE` is disqualified and excluded by the deterministic eligibility filter.
 4. Toggle objective from `BALANCED` to `SUSTAINABILITY_FIRST`.

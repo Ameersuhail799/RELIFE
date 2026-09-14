@@ -130,8 +130,25 @@ def get_portfolio_impact_summary(db: Session) -> ImpactSummaryResponse:
     Strictly flags all metrics as provisional estimates.
     """
     total_assets = db.query(Asset).count()
-    recommendations = db.query(PathwayRecommendation).all()
-    total_assessed = len(recommendations)
+    
+    # Retrieve the latest/current applicable recommendation per physical asset.
+    # Preserves historical recommendation records in the database and audit trail while
+    # ensuring that repeated evaluations of the same physical asset are not double-counted.
+    all_recommendations = (
+        db.query(PathwayRecommendation)
+        .order_by(
+            PathwayRecommendation.created_at.desc(),
+            PathwayRecommendation.recommendation_id.desc(),
+        )
+        .all()
+    )
+    latest_recs_by_asset = {}
+    for rec in all_recommendations:
+        if rec.asset_id not in latest_recs_by_asset:
+            latest_recs_by_asset[rec.asset_id] = rec
+
+    current_recommendations = list(latest_recs_by_asset.values())
+    total_assessed = len(current_recommendations)
 
     breakdown = PathwayBreakdown()
     total_avoided_cost = 0.0
@@ -140,8 +157,12 @@ def get_portfolio_impact_summary(db: Session) -> ImpactSummaryResponse:
     total_life_years = 0.0
     eligible_circular_count = 0
 
-    for rec in recommendations:
-        pathway = rec.recommended_pathway
+    for rec in current_recommendations:
+        pathway = (
+            rec.chosen_pathway_override
+            if rec.approval_status == "OVERRIDDEN" and rec.chosen_pathway_override
+            else rec.recommended_pathway
+        )
 
         if pathway == CircularPathway.DIRECT_REUSE.value:
             breakdown.direct_reuse += 1

@@ -489,3 +489,123 @@ def test_11_get_candidates_for_demand(client):
     assert "reasons" in first_candidate
     assert "security_eligibility_status" in first_candidate
 
+
+def test_12_deduplicated_portfolio_impact_on_repeated_evaluation(client):
+    """
+    Test 12: Evaluating the same physical asset multiple times does NOT double-count impact.
+    Different assets each contribute once. Passport history remains intact.
+    """
+    client.post("/api/v1/assets/seed-simulated")
+
+    # 1. First evaluation of SIM-LAP-001
+    eval1 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-001", "decision_objective": "BALANCED"})
+    assert eval1.status_code == status.HTTP_200_OK
+
+    imp1 = client.get("/api/v1/impact/summary").json()
+    assert imp1["total_assets_assessed"] == 1
+    assert imp1["total_estimated_purchase_cost_avoided"] == 45000.0
+    assert imp1["total_estimated_ewaste_diverted_kg"] == 2.1
+    assert imp1["total_estimated_co2e_avoided_kg"] == 135.0
+    assert imp1["pathway_breakdown"]["direct_reuse"] == 1
+
+    # 2. Second evaluation of SIM-LAP-001 (same physical asset)
+    eval2 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-001", "decision_objective": "BALANCED"})
+    assert eval2.status_code == status.HTTP_200_OK
+
+    imp2 = client.get("/api/v1/impact/summary").json()
+    # Must NOT double count: still 1 physical asset assessed
+    assert imp2["total_assets_assessed"] == 1
+    assert imp2["total_estimated_purchase_cost_avoided"] == 45000.0
+    assert imp2["total_estimated_ewaste_diverted_kg"] == 2.1
+    assert imp2["total_estimated_co2e_avoided_kg"] == 135.0
+    assert imp2["pathway_breakdown"]["direct_reuse"] == 1
+
+    # 3. Third evaluation of SIM-LAP-001
+    eval3 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-001", "decision_objective": "BALANCED"})
+    assert eval3.status_code == status.HTTP_200_OK
+
+    imp3 = client.get("/api/v1/impact/summary").json()
+    assert imp3["total_assets_assessed"] == 1
+    assert imp3["total_estimated_purchase_cost_avoided"] == 45000.0
+
+    # 4. Now evaluate a DIFFERENT physical asset (SIM-LAP-002)
+    eval_other = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-002", "decision_objective": "BALANCED"})
+    assert eval_other.status_code == status.HTTP_200_OK
+
+    imp4 = client.get("/api/v1/impact/summary").json()
+    # Two distinct physical assets
+    assert imp4["total_assets_assessed"] == 2
+    assert imp4["total_estimated_purchase_cost_avoided"] == 90000.0
+    assert imp4["total_estimated_ewaste_diverted_kg"] == 4.2
+    assert imp4["pathway_breakdown"]["direct_reuse"] == 1
+    assert imp4["pathway_breakdown"]["repair"] == 1
+
+    # 5. Verify passport for SIM-LAP-001 retains all 3 evaluation events in audit history
+    pass_res = client.get("/api/v1/passport/SIM-LAP-001")
+    assert pass_res.status_code == status.HTTP_200_OK
+    events = pass_res.json()["events"]
+    eval_events = [e for e in events if e["event_type"] == "RECOMMENDATION_GENERATED"]
+    assert len(eval_events) == 3, "Historical passport evaluation events must be preserved"
+
+
+def test_13_portfolio_impact_uses_latest_differing_recommendation_and_preserves_passport(client):
+    """
+    Test 13: When an asset's latest recommendation differs from its previous one,
+    the portfolio uses the latest recommendation without inflating asset counts.
+    Human override is also respected in the pathway breakdown.
+    """
+    client.post("/api/v1/assets/seed-simulated")
+
+    # 1. Evaluate SIM-LAP-002 under BALANCED -> REPAIR
+    res1 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-002", "decision_objective": "BALANCED"})
+    assert res1.status_code == status.HTTP_200_OK
+    assert res1.json()["recommended_pathway"] == "REPAIR"
+
+    imp1 = client.get("/api/v1/impact/summary").json()
+    assert imp1["total_assets_assessed"] == 1
+    assert imp1["pathway_breakdown"]["repair"] == 1
+    assert imp1["pathway_breakdown"]["repurpose"] == 0
+    assert imp1["total_estimated_co2e_avoided_kg"] == 112.5  # 2.5 yrs * 45.0
+
+    # 2. Re-evaluate SIM-LAP-002 under COST_FIRST -> REPURPOSE
+    res2 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-002", "decision_objective": "COST_FIRST"})
+    assert res2.status_code == status.HTTP_200_OK
+    rec2_data = res2.json()
+    assert rec2_data["recommended_pathway"] == "REPURPOSE"
+    rec2_id = rec2_data["recommendation_id"]
+
+    imp2 = client.get("/api/v1/impact/summary").json()
+    # Count is still 1 physical asset, but pathway breakdown now reflects REPURPOSE
+    assert imp2["total_assets_assessed"] == 1
+    assert imp2["pathway_breakdown"]["repair"] == 0
+    assert imp2["pathway_breakdown"]["repurpose"] == 1
+    assert imp2["total_estimated_purchase_cost_avoided"] == 45000.0
+
+    # 3. Test Human Override on latest recommendation (rec2)
+    # Admin overrides pathway from REPURPOSE to REPAIR
+    override_res = client.post(
+        f"/api/v1/approvals/{rec2_id}/decide",
+        json={
+            "decision": "OVERRIDE",
+            "chosen_pathway": "REPAIR",
+            "chosen_destination": "INTERNAL_REDEPLOYMENT",
+            "actor": "lead_tech",
+            "approval_notes": "Authorizing authorized repair attempt in campus lab.",
+        },
+    )
+    assert override_res.status_code == status.HTTP_200_OK
+
+    imp3 = client.get("/api/v1/impact/summary").json()
+    assert imp3["total_assets_assessed"] == 1
+    assert imp3["pathway_breakdown"]["repurpose"] == 0
+    assert imp3["pathway_breakdown"]["repair"] == 1
+
+    # 4. Verify complete passport event trail
+    pass_res = client.get("/api/v1/passport/SIM-LAP-002")
+    assert pass_res.status_code == status.HTTP_200_OK
+    event_types = [e["event_type"] for e in pass_res.json()["events"]]
+    assert "ASSET_REGISTERED" in event_types
+    assert event_types.count("RECOMMENDATION_GENERATED") == 2
+    assert "HUMAN_DECISION_OVERRIDDEN" in event_types
+
+
