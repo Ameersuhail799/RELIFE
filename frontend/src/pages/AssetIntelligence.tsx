@@ -19,8 +19,10 @@ import {
   Layers,
   Sparkles,
   AlertCircle,
+  PlusCircle,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { AssetIntakeModal } from '../components/assets/AssetIntakeModal';
 import { SecurityGateBadge } from '../components/common/SecurityGateBadge';
 import { EstimateBadge } from '../components/common/EstimateBadge';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
@@ -44,6 +46,7 @@ export const AssetIntelligence: React.FC = () => {
   const [objective, setObjective] = useState<DecisionObjective>('BALANCED');
   const [expandedRAG, setExpandedRAG] = useState<boolean>(true);
   const [expandedAssumptions, setExpandedAssumptions] = useState<boolean>(false);
+  const [isIntakeOpen, setIsIntakeOpen] = useState<boolean>(false);
 
   // 1. Fetch Asset Catalog
   const { data: assets = [], isLoading: isAssetsLoading } = useQuery({
@@ -152,6 +155,15 @@ export const AssetIntelligence: React.FC = () => {
             <RotateCcw size={13} className={isEvaluationLoading ? 'animate-spin text-emerald-400' : 'text-slate-400'} />
             <span className="hidden sm:inline">Re-evaluate</span>
           </button>
+
+          <button
+            onClick={() => setIsIntakeOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-semibold text-emerald-400 transition"
+            title="Register a new institutional asset"
+          >
+            <PlusCircle size={13} />
+            <span className="hidden sm:inline">Add Asset</span>
+          </button>
         </div>
       </div>
 
@@ -164,6 +176,15 @@ export const AssetIntelligence: React.FC = () => {
                 <span className="text-xs font-mono font-bold text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
                   {asset.asset_id}
                 </span>
+                {asset.asset_id.startsWith('SIM-') ? (
+                  <span className="text-[10px] font-mono text-sky-400 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-800/40" title="Seeded simulated dataset asset">
+                    SIMULATED DATASET
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/40" title="Manually registered institutional record">
+                    INSTITUTIONAL RECORD
+                  </span>
+                )}
                 <h3 id="device-identity" className="text-lg font-bold text-white">
                   {asset.manufacturer} {asset.model}
                 </h3>
@@ -734,6 +755,16 @@ export const AssetIntelligence: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Asset Intake & Registration Modal */}
+      <AssetIntakeModal
+        isOpen={isIntakeOpen}
+        onClose={() => setIsIntakeOpen(false)}
+        onSuccess={(newAsset) => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          handleSelectAsset(newAsset.asset_id);
+        }}
+      />
     </div>
   );
 };

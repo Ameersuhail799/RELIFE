@@ -15,8 +15,10 @@ import {
   Search,
   CheckCircle2,
   SlidersHorizontal,
+  PlusCircle,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { AssetIntakeModal } from '../components/assets/AssetIntakeModal';
 import { EstimateBadge } from '../components/common/EstimateBadge';
 import { SecurityGateBadge } from '../components/common/SecurityGateBadge';
 import { LoadingSkeleton } from '../components/common/LoadingSkeleton';
@@ -82,6 +84,7 @@ export const CommandCenter: React.FC = () => {
   const queryClient = useQueryClient();
   const [searchFilter, setSearchFilter] = useState('');
   const [seedNotice, setSeedNotice] = useState<string | null>(null);
+  const [isIntakeOpen, setIsIntakeOpen] = useState(false);
 
   // Queries
   const {
@@ -200,6 +203,15 @@ export const CommandCenter: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={() => setIsIntakeOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-semibold text-emerald-400 transition shadow-sm"
+            title="Register a new institutional IT asset"
+          >
+            <PlusCircle size={14} />
+            <span>Add Asset</span>
+          </button>
+
           <button
             onClick={() => seedMutation.mutate()}
             disabled={seedMutation.isPending}
@@ -565,7 +577,18 @@ export const CommandCenter: React.FC = () => {
                   return (
                     <tr key={asset.asset_id} className="hover:bg-slate-800/40 transition">
                       <td className="px-4 py-3 font-mono font-medium text-white whitespace-nowrap">
-                        {asset.asset_id}
+                        <div className="flex items-center gap-1.5">
+                          <span>{asset.asset_id}</span>
+                          {asset.asset_id.startsWith('SIM-') ? (
+                            <span className="text-[9px] font-mono text-sky-400 bg-sky-950/80 px-1 py-0.2 rounded border border-sky-800/40" title="Seeded simulated dataset device">
+                              SIMULATED
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/80 px-1 py-0.2 rounded border border-emerald-800/40" title="Manually registered institutional asset">
+                              INSTITUTIONAL
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 font-medium text-slate-200">
                         {asset.manufacturer} {asset.model}
@@ -662,6 +685,16 @@ export const CommandCenter: React.FC = () => {
           </button>
         </div>
       </section>
+
+      {/* Asset Intake & Registration Modal */}
+      <AssetIntakeModal
+        isOpen={isIntakeOpen}
+        onClose={() => setIsIntakeOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          queryClient.invalidateQueries({ queryKey: ['impact-summary'] });
+        }}
+      />
     </div>
   );
 };

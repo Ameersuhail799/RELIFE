@@ -31,6 +31,13 @@ def list_assets(
 
 @router.post("", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
 def create_asset(asset_in: AssetCreate, db: Session = Depends(get_db)):
+    if asset_in.asset_id:
+        existing_id = db.query(Asset).filter(Asset.asset_id == asset_in.asset_id).first()
+        if existing_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Asset with ID '{asset_in.asset_id}' already exists.",
+            )
     existing = db.query(Asset).filter(Asset.serial_number == asset_in.serial_number).first()
     if existing:
         raise HTTPException(

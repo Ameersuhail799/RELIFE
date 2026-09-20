@@ -2,6 +2,7 @@
 
 import type {
   Asset,
+  AssetCreate,
   AssetDemandMatchesResponse,
   AssetPassportResponse,
   ApprovalDecisionRequest,
@@ -69,6 +70,13 @@ export const api = {
 
   async getAsset(assetId: string): Promise<Asset> {
     return request<Asset>(`/assets/${assetId}`);
+  },
+
+  async createAsset(asset: AssetCreate): Promise<Asset> {
+    return request<Asset>('/assets', {
+      method: 'POST',
+      body: JSON.stringify(asset),
+    });
   },
 
   async seedSimulatedData(): Promise<{ message: string; seeded_count: number }> {

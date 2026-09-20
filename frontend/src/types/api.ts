@@ -181,6 +181,33 @@ export interface Asset {
   updated_at: string;
 }
 
+export interface AssetCreate {
+  asset_id?: string;
+  serial_number: string;
+  device_type: 'laptop' | 'desktop';
+  manufacturer: string;
+  model: string;
+  purchase_year: number;
+  cpu_model: string;
+  cpu_cores: number;
+  ram_gb: number;
+  storage_gb: number;
+  storage_type: string;
+  storage_present?: boolean;
+  sanitization_method?: SanitizationMethod;
+  sanitization_status?: SanitizationStatus;
+  sanitization_verified?: boolean;
+  verification_reference?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
+  battery_health_percent?: number | null;
+  physical_condition: PhysicalCondition;
+  functional_status: FunctionalStatus;
+  known_issues?: string[];
+  department: string;
+  location: string;
+}
+
 export interface EvaluationResponse {
   recommendation_id: string;
   asset_id: string;
