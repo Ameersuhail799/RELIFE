@@ -15,7 +15,8 @@ import type {
   DecisionObjective,
 } from '../types/api';
 
-const API_BASE = '/api/v1';
+const RAW_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+const API_BASE = `${RAW_URL}/api/v1`;
 
 class APIError extends Error {
   status: number;
