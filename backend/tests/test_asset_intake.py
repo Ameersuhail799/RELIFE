@@ -181,3 +181,61 @@ def test_newly_created_unsanitized_asset_remains_security_blocked(client):
     assert security_gate["direct_reuse_permitted"] is False
     assert len(security_gate["blocking_reasons"]) >= 1
     assert "DIRECT_REUSE" not in eval_data["eligible_pathways"]
+
+
+def test_default_asset_intake_defaults_to_unverified_and_blocks_direct_reuse(client):
+    """
+    Task 3 Regression: Newly registered asset with storage defaults to unverified sanitization
+    and cannot be approved for DIRECT_REUSE.
+    """
+    payload = {
+        "asset_id": "INST-LAP-DEFAULT-001",
+        "serial_number": "SN-INTAKE-DEF-001",
+        "device_type": "laptop",
+        "manufacturer": "Dell",
+        "model": "Latitude 7420",
+        "purchase_year": 2022,
+        "cpu_model": "Intel Core i7-1185G7",
+        "cpu_cores": 4,
+        "ram_gb": 16,
+        "storage_gb": 512,
+        "storage_type": "nvme_ssd",
+        "storage_present": True,
+        # Omit all sanitization fields to verify defaults
+        "physical_condition": "grade_a",
+        "functional_status": "fully_functional",
+        "department": "Computer Science & Engineering",
+        "location": "Main Lab",
+    }
+    create_res = client.post("/api/v1/assets", json=payload)
+    assert create_res.status_code == status.HTTP_201_CREATED
+    asset = create_res.json()
+
+    # Verify safe defaults
+    assert asset["sanitization_verified"] is False
+    assert asset["sanitization_status"] == "pending"
+    assert asset["sanitization_method"] == "none"
+    assert asset["verification_reference"] is None
+    assert asset["verified_by"] is None
+
+    # Evaluate asset
+    eval_res = client.post("/api/v1/evaluate", json={"asset_id": "INST-LAP-DEFAULT-001"})
+    assert eval_res.status_code == status.HTTP_200_OK
+    eval_data = eval_res.json()
+    assert eval_data["security_gate"]["direct_reuse_permitted"] is False
+    assert "DIRECT_REUSE" not in eval_data["eligible_pathways"]
+    rec_id = eval_data["recommendation_id"]
+
+    # Attempt to override to DIRECT_REUSE must fail with HTTP 403
+    override_res = client.post(
+        f"/api/v1/approvals/{rec_id}/decide",
+        json={
+            "decision": "OVERRIDE",
+            "chosen_pathway": "DIRECT_REUSE",
+            "chosen_destination": "INTERNAL_REDEPLOYMENT",
+            "actor": "auditor_1",
+            "approval_notes": "Attempting unauthorized override without verified sanitization",
+        },
+    )
+    assert override_res.status_code == status.HTTP_403_FORBIDDEN
+    assert "MANDATORY SECURITY GATE VIOLATION" in override_res.json()["detail"]

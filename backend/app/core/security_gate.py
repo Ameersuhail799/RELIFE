@@ -32,6 +32,38 @@ RESTRICTED_ACTIONS = {
 }
 
 
+def is_sanitization_fully_cleared(
+    storage_present: bool,
+    sanitization_verified: bool,
+    sanitization_status: Optional[SanitizationStatus] = None,
+    sanitization_method: Optional[SanitizationMethod] = None,
+) -> tuple[bool, list[str]]:
+    """
+    Canonical shared security predicate.
+    When storage is present, sanitization is ONLY cleared if:
+    1. sanitization_verified is True
+    2. sanitization_status is SanitizationStatus.COMPLETED
+    3. sanitization_method is NOT None and NOT SanitizationMethod.NONE
+    When storage is absent (diskless), sanitization is cleared.
+    """
+    blocking_reasons: list[str] = []
+
+    if storage_present:
+        if not sanitization_verified:
+            blocking_reasons.append(
+                "Storage drive is present but sanitization has NOT been verified by an authorized technician."
+            )
+        if sanitization_status != SanitizationStatus.COMPLETED:
+            current_status = sanitization_status.value if sanitization_status else "unspecified"
+            blocking_reasons.append(
+                f"Sanitization status is '{current_status}', required 'completed'."
+            )
+        if sanitization_method in (SanitizationMethod.NONE, None):
+            blocking_reasons.append("No valid data sanitization method recorded.")
+
+    return len(blocking_reasons) == 0, blocking_reasons
+
+
 def evaluate_security_gate(
     storage_present: bool,
     sanitization_status: SanitizationStatus,
@@ -41,23 +73,14 @@ def evaluate_security_gate(
 ) -> SecurityGateResult:
     """
     Evaluates whether an asset's storage sanitization meets strict criteria for direct reuse/release.
-    Deterministic rule: If storage is present and sanitization is not verified, direct reuse is blocked.
+    Deterministic rule: If storage is present and any sanitization criteria fail, direct reuse is blocked.
     """
-    blocking_reasons = []
-
-    if storage_present:
-        if not sanitization_verified:
-            blocking_reasons.append(
-                "Storage drive is present but sanitization has NOT been verified by an authorized technician."
-            )
-        if sanitization_status != SanitizationStatus.COMPLETED:
-            blocking_reasons.append(
-                f"Sanitization status is '{sanitization_status.value}', required 'completed'."
-            )
-        if sanitization_method in (SanitizationMethod.NONE, None):
-            blocking_reasons.append("No valid data sanitization method recorded.")
-
-    direct_reuse_permitted = len(blocking_reasons) == 0
+    direct_reuse_permitted, blocking_reasons = is_sanitization_fully_cleared(
+        storage_present=storage_present,
+        sanitization_verified=sanitization_verified,
+        sanitization_status=sanitization_status,
+        sanitization_method=sanitization_method,
+    )
 
     notes = (
         "Security gate CLEARED: Storage sanitization verified or drive absent."
@@ -82,26 +105,40 @@ def assert_security_gate_for_action(
     sanitization_verified: bool,
     pathway: CircularPathway,
     destination_action: Optional[DestinationAction] = None,
+    sanitization_status: Optional[SanitizationStatus] = SanitizationStatus.COMPLETED,
+    sanitization_method: Optional[SanitizationMethod] = SanitizationMethod.CRYPTO_ERASE,
 ) -> None:
     """
     Non-bypassable programmatic gate.
     Used during eligibility check AND human approval / override to guarantee that
     unverified storage can NEVER be directly reused, redeployed, donated, or resold.
+    All required sanitization conditions (verified=True, status=completed, method!=none)
+    must be satisfied when storage is present.
     Repair and Refurbishment workflows are permitted to proceed into the technician lab
-    where sanitization and repairs will take place.
+    where sanitization and repairs will take place. Component recovery and recycling
+    are permitted for material and parts salvage without whole-device storage redeployment.
     """
-    if storage_present and not sanitization_verified:
+    cleared, blocking_reasons = is_sanitization_fully_cleared(
+        storage_present=storage_present,
+        sanitization_verified=sanitization_verified,
+        sanitization_status=sanitization_status,
+        sanitization_method=sanitization_method,
+    )
+
+    if storage_present and not cleared:
+        reasons_summary = "; ".join(blocking_reasons)
+
         if pathway == CircularPathway.DIRECT_REUSE:
             raise SecurityGateViolationError(
-                "MANDATORY SECURITY GATE VIOLATION: Cannot execute or approve pathway 'DIRECT_REUSE' "
-                "while internal storage is present and sanitization is unverified. "
+                f"MANDATORY SECURITY GATE VIOLATION: Cannot execute or approve pathway 'DIRECT_REUSE' "
+                f"while internal storage is present and sanitization is unverified ({reasons_summary}). "
                 "Human override is strictly prohibited for unverified storage."
             )
 
         if destination_action in (DestinationAction.DONATION, DestinationAction.RESALE):
             raise SecurityGateViolationError(
                 f"MANDATORY SECURITY GATE VIOLATION: Cannot release asset to '{destination_action.value}' "
-                "while internal storage is present and sanitization is unverified. "
+                f"while internal storage is present and sanitization is unverified ({reasons_summary}). "
                 "Human override is strictly prohibited for unverified storage."
             )
 
@@ -110,7 +147,7 @@ def assert_security_gate_for_action(
             CircularPathway.REFURBISH,
         ):
             raise SecurityGateViolationError(
-                "MANDATORY SECURITY GATE VIOLATION: Cannot execute direct 'INTERNAL_REDEPLOYMENT' "
-                "while internal storage is present and sanitization is unverified. "
+                f"MANDATORY SECURITY GATE VIOLATION: Cannot execute direct 'INTERNAL_REDEPLOYMENT' "
+                f"while internal storage is present and sanitization is unverified ({reasons_summary}). "
                 "Human override is strictly prohibited for unverified storage."
             )

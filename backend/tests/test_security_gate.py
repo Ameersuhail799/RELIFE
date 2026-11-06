@@ -83,3 +83,57 @@ def test_assert_security_gate_allows_reuse_when_verified():
         pathway=CircularPathway.DIRECT_REUSE,
         destination_action=DestinationAction.INTERNAL_REDEPLOYMENT,
     )
+
+
+def test_assert_security_gate_blocks_when_status_pending():
+    """Regression: sanitization_verified is True, but status is PENDING must be blocked."""
+    with pytest.raises(SecurityGateViolationError) as exc_info:
+        assert_security_gate_for_action(
+            storage_present=True,
+            sanitization_verified=True,
+            sanitization_status=SanitizationStatus.PENDING,
+            sanitization_method=SanitizationMethod.CRYPTO_ERASE,
+            pathway=CircularPathway.DIRECT_REUSE,
+            destination_action=DestinationAction.INTERNAL_REDEPLOYMENT,
+        )
+    assert "MANDATORY SECURITY GATE VIOLATION" in str(exc_info.value)
+    assert "required 'completed'" in str(exc_info.value)
+
+
+def test_assert_security_gate_blocks_when_method_none():
+    """Regression: sanitization_verified is True, status is COMPLETED, but method is NONE must be blocked."""
+    with pytest.raises(SecurityGateViolationError) as exc_info:
+        assert_security_gate_for_action(
+            storage_present=True,
+            sanitization_verified=True,
+            sanitization_status=SanitizationStatus.COMPLETED,
+            sanitization_method=SanitizationMethod.NONE,
+            pathway=CircularPathway.DIRECT_REUSE,
+            destination_action=DestinationAction.INTERNAL_REDEPLOYMENT,
+        )
+    assert "MANDATORY SECURITY GATE VIOLATION" in str(exc_info.value)
+    assert "No valid data sanitization method recorded" in str(exc_info.value)
+
+
+def test_assert_security_gate_allows_when_all_conditions_valid():
+    """Regression: verified=True, status=COMPLETED, method=CRYPTO_ERASE permits direct reuse."""
+    assert_security_gate_for_action(
+        storage_present=True,
+        sanitization_verified=True,
+        sanitization_status=SanitizationStatus.COMPLETED,
+        sanitization_method=SanitizationMethod.CRYPTO_ERASE,
+        pathway=CircularPathway.DIRECT_REUSE,
+        destination_action=DestinationAction.INTERNAL_REDEPLOYMENT,
+    )
+
+
+def test_assert_security_gate_allows_diskless():
+    """Regression: Diskless asset (storage_present=False) allows direct reuse regardless of sanitization fields."""
+    assert_security_gate_for_action(
+        storage_present=False,
+        sanitization_verified=False,
+        sanitization_status=SanitizationStatus.NOT_REQUIRED,
+        sanitization_method=SanitizationMethod.NONE,
+        pathway=CircularPathway.DIRECT_REUSE,
+        destination_action=DestinationAction.INTERNAL_REDEPLOYMENT,
+    )

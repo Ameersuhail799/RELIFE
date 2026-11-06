@@ -89,18 +89,22 @@ def evaluate_asset_pathways(
     asset_id: str,
     objective: DecisionObjective = DecisionObjective.BALANCED,
     actor: str = "system",
+    persist: bool = True,
 ) -> EvaluationResponse:
     """
     Executes the full decision-support pipeline for an asset:
     Security Gate -> Capability Profile -> Eligibility Filter -> Economics/Impact -> AI Ranking & Explanation.
+    When persist=False, computes a read-only preview without mutating asset lifecycle state,
+    creating new PathwayRecommendation rows, or appending passport events.
     """
     asset = db.query(Asset).filter(Asset.asset_id == asset_id).first()
     if not asset:
         raise ValueError(f"Asset '{asset_id}' not found.")
 
-    # 1. Update lifecycle state: ASSESSING
-    asset.lifecycle_state = AssetLifecycleState.ASSESSING.value
-    db.commit()
+    # 1. Update lifecycle state: ASSESSING (only when persisting an evaluation)
+    if persist:
+        asset.lifecycle_state = AssetLifecycleState.ASSESSING.value
+        db.commit()
 
     # 2. Evaluate Deterministic Security Gate
     security_result = evaluate_security_gate(
@@ -111,13 +115,14 @@ def evaluate_asset_pathways(
         verification_reference=asset.verification_reference,
     )
 
-    log_passport_event(
-        db=db,
-        asset_id=asset.asset_id,
-        event_type="SECURITY_GATE_EVALUATED",
-        actor=actor,
-        details=security_result.model_dump(),
-    )
+    if persist:
+        log_passport_event(
+            db=db,
+            asset_id=asset.asset_id,
+            event_type="SECURITY_GATE_EVALUATED",
+            actor=actor,
+            details=security_result.model_dump(),
+        )
 
     # 3. Extract Capability Profile
     capability_profile = extract_capability_profile(
@@ -204,53 +209,68 @@ def evaluate_asset_pathways(
     ai_context["ai_assessment"] = ai_assessment
     ai_output = ai_provider.generate_recommendation(ai_context)
 
-    # 10. Persist Recommendation to Database
-    recommendation_id = f"REC-{uuid.uuid4().hex[:8].upper()}"
-    db_rec = PathwayRecommendation(
-        recommendation_id=recommendation_id,
-        asset_id=asset.asset_id,
-        decision_objective=objective.value,
-        recommended_pathway=ai_output["recommended_pathway"].value,
-        destination_action=ai_output["destination_action"].value,
-        suitability_score=ai_output["suitability_score"],
-        estimated_repair_cost=economics.estimated_repair_cost,
-        estimated_residual_value=economics.estimated_residual_value,
-        estimated_avoided_cost=economics.estimated_avoided_cost,
-        economic_viability=economics.economic_viability_flag,
-        estimated_life_extension_years=environmental.estimated_life_extension_years,
-        estimated_ewaste_diverted_kg=environmental.ewaste_mass_kg,
-        estimated_co2e_avoided_kg=environmental.total_estimated_co2e_avoided_kg,
-        is_estimate=True,
-        confidence_level=ai_output["confidence_level"].value,
-        reasons=ai_output["reasons"],
-        key_factors=ai_output["key_factors"],
-        alternatives_considered=ai_output["alternatives_considered"],
-        assumptions=ai_output["assumptions"],
-        uncertainties=ai_output["uncertainties"],
-        why_this_recommendation=ai_output["why_this_recommendation"],
-        security_gate_cleared=security_result.direct_reuse_permitted,
-        approval_status="PENDING_APPROVAL",
-    )
-    db.add(db_rec)
+    if persist:
+        # 10. Persist Recommendation to Database
+        recommendation_id = f"REC-{uuid.uuid4().hex[:8].upper()}"
+        approval_status = "PENDING_APPROVAL"
+        db_rec = PathwayRecommendation(
+            recommendation_id=recommendation_id,
+            asset_id=asset.asset_id,
+            decision_objective=objective.value,
+            recommended_pathway=ai_output["recommended_pathway"].value,
+            destination_action=ai_output["destination_action"].value,
+            suitability_score=ai_output["suitability_score"],
+            estimated_repair_cost=economics.estimated_repair_cost,
+            estimated_residual_value=economics.estimated_residual_value,
+            estimated_avoided_cost=economics.estimated_avoided_cost,
+            economic_viability=economics.economic_viability_flag,
+            estimated_life_extension_years=environmental.estimated_life_extension_years,
+            estimated_ewaste_diverted_kg=environmental.ewaste_mass_kg,
+            estimated_co2e_avoided_kg=environmental.total_estimated_co2e_avoided_kg,
+            is_estimate=True,
+            confidence_level=ai_output["confidence_level"].value,
+            reasons=ai_output["reasons"],
+            key_factors=ai_output["key_factors"],
+            alternatives_considered=ai_output["alternatives_considered"],
+            assumptions=ai_output["assumptions"],
+            uncertainties=ai_output["uncertainties"],
+            why_this_recommendation=ai_output["why_this_recommendation"],
+            security_gate_cleared=security_result.direct_reuse_permitted,
+            approval_status=approval_status,
+        )
+        db.add(db_rec)
 
-    # 11. Update Asset Lifecycle State -> PENDING_DECISION
-    asset.lifecycle_state = AssetLifecycleState.PENDING_DECISION.value
-    db.commit()
+        # 11. Update Asset Lifecycle State -> PENDING_DECISION
+        asset.lifecycle_state = AssetLifecycleState.PENDING_DECISION.value
+        db.commit()
 
-    log_passport_event(
-        db=db,
-        asset_id=asset.asset_id,
-        event_type="RECOMMENDATION_GENERATED",
-        actor=actor,
-        details={
-            "recommendation_id": recommendation_id,
-            "recommended_pathway": db_rec.recommended_pathway,
-            "destination_action": db_rec.destination_action,
-            "confidence": db_rec.confidence_level,
-            "suitability_score": db_rec.suitability_score,
-            "decision_objective": objective.value,
-        },
-    )
+        log_passport_event(
+            db=db,
+            asset_id=asset.asset_id,
+            event_type="RECOMMENDATION_GENERATED",
+            actor=actor,
+            details={
+                "recommendation_id": recommendation_id,
+                "recommended_pathway": db_rec.recommended_pathway,
+                "destination_action": db_rec.destination_action,
+                "confidence": db_rec.confidence_level,
+                "suitability_score": db_rec.suitability_score,
+                "decision_objective": objective.value,
+            },
+        )
+    else:
+        existing_rec = (
+            db.query(PathwayRecommendation)
+            .filter(PathwayRecommendation.asset_id == asset.asset_id)
+            .order_by(PathwayRecommendation.created_at.desc())
+            .first()
+        )
+        if existing_rec:
+            recommendation_id = existing_rec.recommendation_id
+            approval_status = existing_rec.approval_status
+        else:
+            recommendation_id = "PREVIEW"
+            approval_status = "NOT_EVALUATED"
 
     alternatives = [
         AlternativeOption(
@@ -289,7 +309,7 @@ def evaluate_asset_pathways(
         assumptions=ai_output["assumptions"],
         uncertainties=ai_output["uncertainties"],
         why_this_recommendation=ai_output["why_this_recommendation"],
-        approval_status="PENDING_APPROVAL",
+        approval_status=approval_status,
     )
 
 
@@ -318,11 +338,23 @@ def process_human_approval(
         final_destination = DestinationAction(rec.destination_action)
 
         # Enforce security gate for recommended action
+        sanitization_status = (
+            SanitizationStatus(asset.sanitization_status)
+            if asset.sanitization_status
+            else SanitizationStatus.PENDING
+        )
+        sanitization_method = (
+            SanitizationMethod(asset.sanitization_method)
+            if asset.sanitization_method
+            else SanitizationMethod.NONE
+        )
         assert_security_gate_for_action(
             storage_present=asset.storage_present,
             sanitization_verified=asset.sanitization_verified,
             pathway=final_pathway,
             destination_action=final_destination,
+            sanitization_status=sanitization_status,
+            sanitization_method=sanitization_method,
         )
 
         rec.approval_status = "APPROVED"
@@ -341,11 +373,23 @@ def process_human_approval(
         final_destination = approval_in.chosen_destination
 
         # MANDATORY SECURITY GATE: Human override CANNOT bypass unverified storage block!
+        sanitization_status = (
+            SanitizationStatus(asset.sanitization_status)
+            if asset.sanitization_status
+            else SanitizationStatus.PENDING
+        )
+        sanitization_method = (
+            SanitizationMethod(asset.sanitization_method)
+            if asset.sanitization_method
+            else SanitizationMethod.NONE
+        )
         assert_security_gate_for_action(
             storage_present=asset.storage_present,
             sanitization_verified=asset.sanitization_verified,
             pathway=final_pathway,
             destination_action=final_destination,
+            sanitization_status=sanitization_status,
+            sanitization_method=sanitization_method,
         )
 
         rec.approval_status = "OVERRIDDEN"

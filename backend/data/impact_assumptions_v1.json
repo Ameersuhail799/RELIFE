@@ -37,6 +37,14 @@
       "source": "Amortized manufacturing avoidance heuristic (Provisional)",
       "confidence": "PROVISIONAL",
       "notes": "Annualized displaced new equipment manufacturing carbon footprint per year of extended active lifetime."
+    },
+    "pathway_life_extension_years": {
+      "direct_reuse": 3.0,
+      "repair": 2.5,
+      "refurbish": 2.5,
+      "repurpose": 2.0,
+      "component_recovery": 1.0,
+      "recycle": 0.0
     }
   }
 }

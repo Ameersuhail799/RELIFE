@@ -609,3 +609,90 @@ def test_13_portfolio_impact_uses_latest_differing_recommendation_and_preserves_
     assert "HUMAN_DECISION_OVERRIDDEN" in event_types
 
 
+def test_14_laptop_vs_desktop_impact_calculation_factors():
+    """
+    Task 4 Regression: Environmental calculations use device-specific factors
+    from versioned assumptions (laptop: 280 kg embodied / 2.1 kg mass; desktop: 350 kg embodied / 7.5 kg mass).
+    """
+    from backend.app.services.impact_engine import calculate_environmental_impact
+    from backend.app.core.enums import CircularPathway
+
+    laptop_res = calculate_environmental_impact("laptop", CircularPathway.DIRECT_REUSE)
+    assert laptop_res.embodied_co2e_kg == 280.0
+    assert laptop_res.ewaste_mass_kg == 2.1
+    assert laptop_res.annual_avoided_co2e_kg == 45.0
+    assert laptop_res.estimated_life_extension_years == 3.0
+    assert laptop_res.total_estimated_co2e_avoided_kg == 135.0
+    assert laptop_res.is_estimate is True
+
+    desktop_res = calculate_environmental_impact("desktop", CircularPathway.COMPONENT_RECOVERY)
+    assert desktop_res.embodied_co2e_kg == 350.0
+    assert desktop_res.ewaste_mass_kg == 7.5
+    assert desktop_res.annual_avoided_co2e_kg == 45.0
+    assert desktop_res.estimated_life_extension_years == 1.0
+    assert desktop_res.total_estimated_co2e_avoided_kg == 45.0
+    assert desktop_res.is_estimate is True
+
+
+def test_15_useful_life_extension_and_co2e_proportionality():
+    """
+    Task 4 Regression: Useful life extension across all circular pathways maps
+    consistently and proportionally to avoided carbon (years * 45.0 kg CO2e/year).
+    """
+    from backend.app.services.impact_engine import calculate_environmental_impact
+    from backend.app.core.enums import CircularPathway
+
+    expected_mappings = [
+        (CircularPathway.DIRECT_REUSE, 3.0, 135.0),
+        (CircularPathway.REPAIR, 2.5, 112.5),
+        (CircularPathway.REFURBISH, 2.5, 112.5),
+        (CircularPathway.REPURPOSE, 2.0, 90.0),
+        (CircularPathway.COMPONENT_RECOVERY, 1.0, 45.0),
+        (CircularPathway.RECYCLE, 0.0, 0.0),
+    ]
+
+    for pathway, exp_years, exp_co2e in expected_mappings:
+        result = calculate_environmental_impact("laptop", pathway)
+        assert result.estimated_life_extension_years == exp_years
+        assert result.total_estimated_co2e_avoided_kg == exp_co2e
+        assert result.total_estimated_co2e_avoided_kg == round(exp_years * 45.0, 1)
+
+
+def test_16_portfolio_impact_three_asset_canonical_baseline(client):
+    """
+    Task 4 Regression: Three canonical demonstration assets aggregate exactly to
+    ₹128,000 capital, 292.5 kg CO2e, 11.7 kg e-waste, 6.5 years life extended,
+    and repeated evaluations do not duplicate physical asset contributions.
+    """
+    client.post("/api/v1/assets/seed-simulated")
+
+    # Evaluate the 3 canonical assets
+    e1 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-001", "decision_objective": "BALANCED"})
+    assert e1.status_code == status.HTTP_200_OK
+
+    e2 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-002", "decision_objective": "BALANCED"})
+    assert e2.status_code == status.HTTP_200_OK
+
+    e3 = client.post("/api/v1/evaluate", json={"asset_id": "SIM-DESK-016", "decision_objective": "BALANCED"})
+    assert e3.status_code == status.HTTP_200_OK
+
+    summary = client.get("/api/v1/impact/summary").json()
+    assert summary["total_assets_assessed"] == 3
+    assert summary["total_assets_eligible_circular"] == 3
+    assert summary["total_estimated_purchase_cost_avoided"] == 128000.0
+    assert summary["total_estimated_ewaste_diverted_kg"] == 11.7
+    assert summary["total_estimated_co2e_avoided_kg"] == 292.5
+    assert summary["total_estimated_useful_life_extension_years"] == 6.5
+    assert summary["is_estimate"] is True
+    assert "ESTIMATE ONLY" in summary["disclaimer"]
+
+    # Re-evaluate all 3 under COST_FIRST -> physical asset count must remain 3
+    client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-001", "decision_objective": "COST_FIRST"})
+    client.post("/api/v1/evaluate", json={"asset_id": "SIM-LAP-002", "decision_objective": "COST_FIRST"})
+    client.post("/api/v1/evaluate", json={"asset_id": "SIM-DESK-016", "decision_objective": "COST_FIRST"})
+
+    summary_after = client.get("/api/v1/impact/summary").json()
+    assert summary_after["total_assets_assessed"] == 3
+
+
+

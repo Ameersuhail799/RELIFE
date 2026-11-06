@@ -45,17 +45,20 @@ def calculate_environmental_impact(
     ewaste_mass = assumptions.get(ewaste_key, {}).get("value", 2.1 if is_laptop else 7.5)
     annual_co2e_rate = assumptions.get(annual_key, {}).get("value", 45.0)
 
-    # Life extension by circular pathway
-    if pathway == CircularPathway.DIRECT_REUSE:
-        life_extension_years = 3.0
-    elif pathway in (CircularPathway.REPAIR, CircularPathway.REFURBISH):
-        life_extension_years = 2.5
-    elif pathway == CircularPathway.REPURPOSE:
-        life_extension_years = 2.0
-    elif pathway == CircularPathway.COMPONENT_RECOVERY:
-        life_extension_years = 1.0
-    else:  # RECYCLE
-        life_extension_years = 0.0
+    # Life extension by circular pathway from versioned assumptions
+    pathway_extensions = assumptions.get(
+        "pathway_life_extension_years",
+        {
+            "direct_reuse": 3.0,
+            "repair": 2.5,
+            "refurbish": 2.5,
+            "repurpose": 2.0,
+            "component_recovery": 1.0,
+            "recycle": 0.0,
+        },
+    )
+    pathway_key = pathway.value.lower()
+    life_extension_years = float(pathway_extensions.get(pathway_key, 0.0))
 
     total_co2e_avoided = round(life_extension_years * annual_co2e_rate, 1)
 
