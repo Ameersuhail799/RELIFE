@@ -250,7 +250,7 @@
   - `SECURITY_GATE_EVALUATED`: Sanitization method, status, technician reference.
   - `RECOMMENDATION_GENERATED`: Proposed pathway, suitability score, confidence level.
   - `HUMAN_DECISION_APPROVED` / `OVERRIDDEN`: Officer identity, timestamp, audit justification.
-- **Auditability:** Transparent SHA-256 cryptographic verification identifier and collapsible raw JSON inspection per event.
+- **Auditability:** Transparent structured audit event log with sequential event IDs, immutable timestamps, actor IDs, and collapsible raw JSON inspection per event.
 - **Repository Evidence:**
   - Passport Model: [`backend/app/models/passport.py`](file:///c:/Users/AMEER%20SUHAIL/OneDrive/Desktop/RELIFE/backend/app/models/passport.py)
   - Passport Service: [`backend/app/services/passport_service.py`](file:///c:/Users/AMEER%20SUHAIL/OneDrive/Desktop/RELIFE/backend/app/services/passport_service.py)
@@ -265,7 +265,7 @@
   - Avoided Procurement Capital (₹)
   - Extended Hardware Operational Life (Years)
 - **Portfolio Retention Funnel:** 3-stage funnel: Registered Fleet (30) $\rightarrow$ Assessed (22) $\rightarrow$ Circularly Retained (22).
-- **Methodology & Assumptions Disclosure:** Slide-over drawer detailing LCA emission factors (Laptops: 247.5 kg $\text{CO}_2\text{e}$, Desktops: 420 kg $\text{CO}_2\text{e}$) citing Teehan & Kandlikar (2013) and Prakash et al. / Öko-Institut (2020).
+- **Methodology & Assumptions Disclosure:** Slide-over drawer detailing versioned model assumptions (Laptops: 280.0 kg $\text{CO}_2\text{e}$, Desktops: 350.0 kg $\text{CO}_2\text{e}$, Annual displaced rate: 45.0 kg $\text{CO}_2\text{e}$/year) contextualized by academic LCA benchmarks citing Fraunhofer IZM, EC JRC, Teehan & Kandlikar (2013), and Prakash et al. / Öko-Institut (2020).
 - **Repository Evidence:**
   - Engine: [`backend/app/services/impact_engine.py`](file:///c:/Users/AMEER%20SUHAIL/OneDrive/Desktop/RELIFE/backend/app/services/impact_engine.py)
   - API Controller: [`backend/app/api/v1/impact.py`](file:///c:/Users/AMEER%20SUHAIL/OneDrive/Desktop/RELIFE/backend/app/api/v1/impact.py)

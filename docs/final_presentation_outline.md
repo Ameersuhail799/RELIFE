@@ -47,7 +47,7 @@
 - **Target Mapping:**
   - **Target 12.2 (Sustainable Management of Natural Resources):** Extending hardware lifespan from 3 to 6 years reduces annualized mineral and semiconductor extraction by ~45%.
   - **Target 12.5 (Substantial Waste Reduction):** Diverts functional components and complete devices from landfills into productive second-life roles.
-  - **Secondary Alignment:** SDG 13 (Climate Action — avoiding Scope 3 manufacturing emissions) and SDG 9 (Infrastructure).
+  - **Secondary Alignment:** SDG 13 (Climate Action — avoiding Scope 3 manufacturing emissions) and SDG 9 (Industry, Innovation & Infrastructure).
 - **Visual:** UN SDG 12 official icon alongside the 6 canonical circular pathways (Direct Reuse, Repair, Refurbish, Repurpose, Component Harvest, Recycle).
 
 ---
@@ -63,22 +63,22 @@
   4. *Repurposing:* Re-allocating hardware to secondary roles (Linux lab node, IoT gateway).
   5. *Component Recovery:* Harvesting functional modular parts for internal spare pools.
   6. *Certified Recycling:* WEEE/R2 compliant material extraction as an absolute last resort.
-- **Visual:** High-level system architecture flowchart.
+- **Visual:** `submission/screenshots/01_command_center.png` showing fleet triage and lifecycle progression.
 
 ---
 
-## Slide 6: How ReLife Works: The Core Decision Pipeline
-- **Key Message:** An end-to-end pipeline connecting physical hardware to institutional demand.
+## Slide 6: How ReLife Works: Intake, Profiling & Decision Pipeline
+- **Key Message:** An end-to-end pipeline connecting physical hardware onboarding to institutional demand.
 - **Step-by-Step Flow:**
-  1. **Intake & Profiling:** Ingests specifications, physical condition, and battery health into a multidimensional Capability Profile.
+  1. **Interactive Asset Intake:** Technicians register surplus devices via modal form (`DEMO-LAP-031`), immediately compiling hardware specifications.
   2. **Deterministic Security Gate:** Enforces NIST SP 800-88 Rev. 2; strictly blocks unverified storage from reuse.
-  3. **Pathway Eligibility Filter:** Prunes invalid pathways using hard technical rules.
+  3. **Capability Profiler:** Evaluates compute tiers, multitasking limits, and OS compatibility.
   4. **Economics & Impact Engine:** Calculates repair costs, residual value, and avoided carbon via validated equations.
   5. **AI Reasoning & Scenario Engine:** Compares trade-offs across 4 institutional objectives.
   6. **Demand Matcher:** Ranks compatible campus requests.
   7. **Human Approval:** Authorized officer signs off on final disposition.
   8. **Circular Passport:** Appends immutable audit event to the ledger.
-- **Visual:** Screenshot of Command Center showing portfolio progression.
+- **Visual:** `submission/screenshots/02_add_asset.png` and `submission/screenshots/03_registered_asset.png`.
 
 ---
 
@@ -96,6 +96,7 @@
     - Final state transitions and audit logging.
 - **Governance Axiom:**
   $$\textbf{AI RECOMMENDS} \quad\cdot\quad \textbf{RULES ENFORCE SAFETY} \quad\cdot\quad \textbf{HUMANS APPROVE}$$
+- **Visual:** `submission/screenshots/04_asset_intelligence.png` showing capability profile and recommendation dossier.
 
 ---
 
@@ -106,16 +107,16 @@
   2. **Algorithmic Transparency:** Transparent Multi-Attribute Utility Theory (MAUT) equations; zero hidden scoring weights.
   3. **Fair Allocation:** Objective capability matching eliminates departmental hoarding.
   4. **Human Oversight:** Human officers have final sign-off; models cannot unilaterally dispose of hardware.
-- **Visual:** Diagram of the 6 Governance Pillars and screenshot of the Global Governance Drawer.
+- **Visual:** `submission/screenshots/08_security_block.png` (HTTP 403 security boundary) and `submission/screenshots/11_governance.png` (Responsible AI Charter).
 
 ---
 
 ## Slide 9: Scenario Lab & Institutional Demand Matching
-- **Key Message:** Optimizing hardware allocation to meet institutional strategic goals and active needs.
+- **Key Message:** Optimizing hardware allocation to meet institutional strategic goals and active campus needs.
 - **Key Capabilities Highlighted:**
   - **Scenario Lab:** Multi-objective switcher (`BALANCED`, `SUSTAINABILITY_FIRST`, `COST_FIRST`, `UTILIZATION_FIRST`). Explains "What Was Gained vs. What Was Sacrificed".
   - **Demand Matching:** Connects decommissioned assets to active departmental requisitions across 6 technical dimensions (compute tier, RAM, storage, mobility, OS, security).
-- **Visual:** Side-by-side screenshots of Scenario Lab objective re-ranking and Demand Matching candidate cards.
+- **Visual:** `submission/screenshots/05_scenario_lab.png` and `submission/screenshots/06_demand_matching.png`.
 
 ---
 
@@ -123,20 +124,22 @@
 - **Key Message:** Complete institutional accountability and forensic-level audit trails.
 - **Key Capabilities Highlighted:**
   - **Approval Center:** Technicians review AI dossiers, verify security certificates, and authorize actions (Approve, Override, Reject).
-  - **Circular Passport:** Append-only lifecycle ledger recording complete chain of custody with SHA-256 cryptographic verification identifiers and expandable raw JSON inspection.
-- **Visual:** Screenshot of the Approval Center review panel and Circular Passport timeline.
+  - **Circular Passport:** Append-only lifecycle ledger recording complete chain of custody with structured event records and expandable raw JSON inspection.
+- **Visual:** `submission/screenshots/07_approval_center.png` and `submission/screenshots/09_circular_passport.png`.
 
 ---
 
 ## Slide 11: SDG 12 Impact Center & Environmental Accounting
 - **Key Message:** Concrete, quantifiable sustainability metrics grounded in transparent scientific literature.
-- **Simulated Demonstration Fleet Results (30 Assets):**
-  - **Procurement Capital Saved:** **₹990,000** in deferred new equipment purchases.
-  - **Avoided Embodied Carbon:** **~2,722.5 kg $\text{CO}_2\text{e}$** [ESTIMATE ONLY].
-  - **Electronic Waste Diverted:** **~46.2 kg** of hazardous electronics kept out of landfills [ESTIMATE ONLY].
-  - **Operational Longevity Extended:** **+60.5 Years** of restored computing service [ESTIMATE ONLY].
+- **Demonstration Metrics:**
+  - **Live 3-Scenario Demonstration Fleet:**
+    - **Procurement Capital Saved:** **₹128,000** in deferred new equipment purchases.
+    - **Avoided Embodied Carbon:** **292.5 kg $\text{CO}_2\text{e}$** [ESTIMATE ONLY].
+    - **Electronic Waste Diverted:** **11.7 kg** of hazardous electronics kept out of landfills [ESTIMATE ONLY].
+    - **Operational Longevity Extended:** **+6.5 Years** of restored computing service [ESTIMATE ONLY].
+  - **Full 22-Asset Assessed Portfolio Potential:** ₹990,000 capital, ~2,722.5 kg $\text{CO}_2\text{e}$, ~46.2 kg e-waste, +60.5 years.
 - **Academic Integrity:** Emission factors cite Teehan & Kandlikar (2013) and Prakash et al. (Öko-Institut 2020), accessible via the interactive Methodology Drawer.
-- **Visual:** Screenshot of Impact Center KPI cards and Methodology slide-over drawer.
+- **Visual:** `submission/screenshots/10_impact_center.png`.
 
 ---
 
@@ -146,9 +149,9 @@
   - **Backend:** FastAPI, Python 3.11+, SQLite, SQLAlchemy, Pydantic v2.
   - **Frontend:** React, TypeScript, Vite, Tailwind CSS.
   - **AI Integration:** IBM Granite (`ibm/granite-3-8b-instruct`), IBM watsonx.ai, offline fallback mock, local RAG engine.
-  - **Agent Workflow:** IBM BOB utilized for architecture, MAUT modeling, and test scaffolding.
-  - **Automated Verification:** **32 passed / 0 failed** pytest test suite (1.40s); clean production build.
-- **Visual:** Terminal screenshot showing 32 passed pytest tests and clean Vite build.
+  - **Workflow Capabilities:** On-demand Asset Intake workflow, Multi-objective MAUT, NIST SP 800-88 hard gate.
+  - **Automated Verification:** **39 passed / 0 failed** pytest test suite; clean production build.
+- **Visual:** Terminal verification evidence showing 39 passed pytest tests and Vite build success.
 
 ---
 

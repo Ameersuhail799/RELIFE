@@ -62,8 +62,8 @@ Every BOB proposal was reviewed by the human developer, who corrected oversimpli
 
 ### Q9: How are the environmental metrics calculated?
 **Answer:** Using deterministic lifecycle equations implemented in [`backend/app/services/impact_engine.py`](file:///c:/Users/AMEER%20SUHAIL/OneDrive/Desktop/RELIFE/backend/app/services/impact_engine.py):
-- Avoided Embodied Carbon: Multiplies retained devices by empirical embodied carbon coefficients derived from published LCA studies (247.5 kg $\text{CO}_2\text{e}$ for laptops, 420.0 kg $\text{CO}_2\text{e}$ for desktops) modulated by pathway retention factors.
-- Avoided E-Waste: Multiplies devices by standard chassis weights (2.1 kg for laptops, 8.5 kg for desktop towers).
+- Avoided Displaced Carbon: Multiplies useful life extension years by the versioned annual displaced manufacturing factor (45.0 kg $\text{CO}_2\text{e}$/year), with reference embodied carbon figures (280.0 kg $\text{CO}_2\text{e}$ for laptops via Fraunhofer IZM; 350.0 kg $\text{CO}_2\text{e}$ for desktops via EC JRC) contextualized against broader academic LCA literature (e.g. Teehan & Kandlikar 2013: 247.5 kg; Prakash et al. 2020: 420 kg).
+- Avoided E-Waste: Multiplies devices by versioned chassis weights (2.1 kg for laptops, 7.5 kg for desktop mini-towers).
 All metrics are prominently tagged with `[ESTIMATE ONLY]`.
 
 ---
@@ -132,4 +132,4 @@ All metrics are prominently tagged with `[ESTIMATE ONLY]`.
 ---
 
 ### Q20: Why is the Circular IT Asset Passport useful if it's not a blockchain?
-**Answer:** You don't need a heavy distributed blockchain to achieve enterprise accountability. ReLife's Circular Asset Passport provides an append-only, tamper-evident audit ledger with SHA-256 cryptographic verification identifiers. It records every event from registration to wiping, AI recommendation, and human sign-off. This satisfies ISO 27001 data compliance, internal university audits, and WEEE environmental reporting without unnecessary complexity.
+**Answer:** You don't need a heavy distributed blockchain to achieve enterprise accountability. ReLife's Circular Asset Passport provides a structured, append-only audit event trail with sequential identifiers, immutable timestamps, actor IDs, and expandable raw JSON evidence inspection. It records every event from registration to wiping, AI recommendation, and human sign-off. This satisfies ISO 27001 data compliance, internal university audits, and WEEE environmental reporting without unnecessary complexity.

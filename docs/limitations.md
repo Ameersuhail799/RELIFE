@@ -50,7 +50,7 @@ To ensure academic integrity, the following boundaries are explicitly declared:
 | :--- | :--- | :--- |
 | **Asset Data Ingestion** | Seeded simulated JSON dataset (30 devices) | Direct API webhooks to ServiceNow / Snipe-IT |
 | **Sanitization Audit** | Technician form with NIST SP 800-88 Rev. 2 certificate reference | Automated cryptographic log ingestion via ShredOS / DBAN API |
-| **Embodied Carbon** | Static peer-reviewed LCA factors (247.5 kg / 420 kg) | Dynamic Climatiq / Ecoinvent Scope 3 carbon API integration |
+| **Embodied Carbon** | Static peer-reviewed LCA literature factors (247.5–280 kg / 350–420 kg) | Dynamic Climatiq / Ecoinvent Scope 3 carbon API integration |
 | **Market Valuation** | Straight-line depreciation model | Enterprise ITAD clearinghouse pricing feeds |
 | **Knowledge Base** | 10 curated JSON standards & manuals | Vector database (pgvector / Milvus) with automated OEM doc ingestion |
 | **Infrastructure** | FastAPI + SQLite + React Vite SPA | Distributed PostgreSQL + Kubernetes + Multi-Tenant SSO |
