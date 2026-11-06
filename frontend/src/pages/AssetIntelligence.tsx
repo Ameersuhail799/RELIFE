@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Cpu,
   ShieldCheck,
@@ -77,16 +77,29 @@ export const AssetIntelligence: React.FC = () => {
     enabled: !!selectedAssetId,
   });
 
-  // 3. Evaluate Asset with Decision Objective
+  // 3. Read-Only Assessment Preview with Decision Objective
   const {
     data: evaluation,
     isLoading: isEvaluationLoading,
     error: evalError,
-    refetch: refetchEvaluation,
   } = useQuery({
     queryKey: ['evaluation', selectedAssetId, objective],
-    queryFn: () => api.evaluateAsset(selectedAssetId, objective),
+    queryFn: () => api.getAssetEvaluation(selectedAssetId, objective),
     enabled: !!selectedAssetId,
+  });
+
+  // 4. Explicit State-Mutating Evaluation Action
+  const evaluateMutation = useMutation({
+    mutationFn: () => api.evaluateAsset(selectedAssetId, objective),
+    onSuccess: (newEval) => {
+      queryClient.setQueryData(['evaluation', selectedAssetId, objective], newEval);
+      queryClient.invalidateQueries({ queryKey: ['asset', selectedAssetId] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      queryClient.invalidateQueries({ queryKey: ['approvals'] });
+      queryClient.invalidateQueries({ queryKey: ['impact-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['impact'] });
+      queryClient.invalidateQueries({ queryKey: ['passport', selectedAssetId] });
+    },
   });
 
   if (isAssetsLoading || (isAssetLoading && !asset)) {
@@ -148,12 +161,15 @@ export const AssetIntelligence: React.FC = () => {
           </select>
 
           <button
-            onClick={() => refetchEvaluation()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-750 text-xs font-medium text-slate-200 transition"
-            title="Re-run assessment with current backend parameters"
+            onClick={() => evaluateMutation.mutate()}
+            disabled={evaluateMutation.isPending || !selectedAssetId}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-750 disabled:opacity-50 text-xs font-medium text-slate-200 transition"
+            title="Run and record official assessment with current decision objective"
           >
-            <RotateCcw size={13} className={isEvaluationLoading ? 'animate-spin text-emerald-400' : 'text-slate-400'} />
-            <span className="hidden sm:inline">Re-evaluate</span>
+            <RotateCcw size={13} className={(isEvaluationLoading || evaluateMutation.isPending) ? 'animate-spin text-emerald-400' : 'text-slate-400'} />
+            <span className="hidden sm:inline">
+              {evaluation?.approval_status === 'NOT_EVALUATED' ? 'Evaluate Asset' : 'Re-evaluate'}
+            </span>
           </button>
 
           <button
@@ -250,7 +266,7 @@ export const AssetIntelligence: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-rose-200/90 leading-relaxed">
-                  In compliance with <strong>NIST SP 800-88 Rev. 2 (Guidelines for Media Sanitization, September 2025)</strong>,
+                  Aligned with <strong>NIST SP 800-88 Rev. 2 (Guidelines for Media Sanitization, September 2025)</strong> guidance,
                   storage media on this device has <strong>not been verified sanitized</strong>. Restricted release pathways
                   (Direct Reuse, Internal Redeployment, Donation, Resale) are hard-blocked by deterministic rules.
                 </p>
@@ -305,14 +321,14 @@ export const AssetIntelligence: React.FC = () => {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-                    MEDIA SANITIZATION VERIFIED · NIST SP 800-88 REV. 2 COMPLIANT
+                    SANITIZATION VERIFIED · ALIGNED WITH NIST SP 800-88 REV. 2 GUIDANCE
                   </span>
                   <span className="text-[10px] font-mono text-emerald-400 bg-emerald-900/40 px-2 py-0.5 rounded">
                     CLEARED
                   </span>
                 </div>
                 <p className="text-xs text-emerald-200/90">
-                  Storage media verified purged. Reference: <span className="font-mono text-white">{asset?.verification_reference || 'CERT-NIST-SP800-88-R2'}</span> · Verified By: {asset?.verified_by || 'IT Security Officer'}
+                  Storage media sanitization verified. Verification Reference: <span className="font-mono text-white">{asset?.verification_reference || 'VER-REF-RECORDED'}</span> · Verified By: {asset?.verified_by || 'IT Security Officer'}
                 </p>
               </div>
             </div>

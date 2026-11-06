@@ -12,8 +12,9 @@ export type DestinationAction =
   | 'INTERNAL_REDEPLOYMENT'
   | 'DONATION'
   | 'RESALE'
+  | 'LAB_DEPLOYMENT'
   | 'COMPONENT_HARVEST'
-  | 'RESPONSIBLE_RECYCLING';
+  | 'CERTIFIED_RECYCLER';
 
 export type DecisionObjective =
   | 'BALANCED'

@@ -133,7 +133,7 @@ export const CircularPassport: React.FC = () => {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Immutable chain-of-custody, sanitization certifications, and disposition decision audit trail.
+            Append-only chain-of-custody, sanitization verification records, and disposition decision audit trail.
           </p>
         </div>
 
@@ -157,7 +157,7 @@ export const CircularPassport: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Asset Passport Certificate Summary Card */}
+      {/* 2. Asset Passport Summary Card */}
       {passport && (
         <div className="rounded-xl border border-slate-800 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950 p-5 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -202,10 +202,10 @@ export const CircularPassport: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
             <div className="flex items-center gap-2">
               <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-              <span>Cryptographic Chain-of-Custody Ledger Verified</span>
+              <span>APPEND-ONLY AUDIT LOG · EVENT HISTORY RECORDED</span>
             </div>
             <div className="font-mono text-[11px] text-slate-500">
-              LEDGER-ID: {passport.asset_id}-PASSPORT-SHA256
+              AUDIT-LOG-ID: {passport.asset_id}-PASSPORT
             </div>
           </div>
         </div>

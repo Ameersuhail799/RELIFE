@@ -420,7 +420,7 @@ export const DemandMatching: React.FC = () => {
                         </div>
 
                         <button
-                          onClick={() => navigate(`/asset-intelligence?selected=${candidate.asset_id}`)}
+                          onClick={() => navigate(`/assets?selected=${candidate.asset_id}`)}
                           className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
                         >
                           View in Intelligence

@@ -33,10 +33,11 @@ const ALL_PATHWAYS: Array<{ id: CircularPathway; label: string }> = [
 
 const DESTINATIONS: Array<{ id: DestinationAction; label: string }> = [
   { id: 'INTERNAL_REDEPLOYMENT', label: 'Internal Redeployment (Campus Lab / Office)' },
+  { id: 'LAB_DEPLOYMENT', label: 'Secondary Institutional Lab Deployment' },
   { id: 'DONATION', label: 'External Community / Educational Donation' },
   { id: 'RESALE', label: 'Authorized Secondary Market Resale' },
   { id: 'COMPONENT_HARVEST', label: 'Internal Component Spares Pool' },
-  { id: 'RESPONSIBLE_RECYCLING', label: 'Certified WEEE / R2 Recycling Partner' },
+  { id: 'CERTIFIED_RECYCLER', label: 'Certified WEEE / R2 Recycling Partner' },
 ];
 
 const STATUS_TABS = [

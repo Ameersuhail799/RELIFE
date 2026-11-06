@@ -42,11 +42,11 @@ const INITIAL_FORM_STATE = {
   storage_gb: 512,
   storage_type: 'nvme_ssd',
   storage_present: true,
-  sanitization_method: 'crypto_erase' as SanitizationMethod,
-  sanitization_status: 'completed' as SanitizationStatus,
-  sanitization_verified: true,
-  verification_reference: 'CERT-NIST-88-2026-INTAKE',
-  verified_by: 'lead_technician',
+  sanitization_method: 'none' as SanitizationMethod,
+  sanitization_status: 'pending' as SanitizationStatus,
+  sanitization_verified: false,
+  verification_reference: '',
+  verified_by: '',
   battery_health_percent: 88,
   physical_condition: 'grade_a' as PhysicalCondition,
   functional_status: 'fully_functional' as FunctionalStatus,
@@ -550,7 +550,7 @@ export const AssetIntakeModal: React.FC<AssetIntakeModalProps> = ({
                   <ShieldAlert size={14} className="text-amber-400 shrink-0 mt-0.5" />
                   <span>
                     <strong>NIST SP 800-88 Rev. 2 Governance Gate:</strong> Unsanitized storage is deterministically blocked
-                    from direct internal redeployment or donation until technician certification is recorded.
+                    from direct internal redeployment or donation until technician verification is recorded (aligned with NIST SP 800-88 Rev. 2 guidance).
                   </span>
                 </div>
 
@@ -572,7 +572,7 @@ export const AssetIntakeModal: React.FC<AssetIntakeModalProps> = ({
                       onChange={(e) => setFormData({ ...formData, sanitization_verified: e.target.checked })}
                       className="rounded border-slate-700 bg-slate-800 text-emerald-500 focus:ring-0"
                     />
-                    <span className="text-xs text-slate-300">Technician Verified & Certified</span>
+                    <span className="text-xs text-slate-300">Sanitization Verified</span>
                   </label>
                 </div>
 
@@ -611,11 +611,11 @@ export const AssetIntakeModal: React.FC<AssetIntakeModalProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-slate-300 mb-1">
-                      Verification Certificate / Reference
+                      Verification Reference
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. CERT-NIST-88-2026-X1"
+                      placeholder="e.g. SAN-VER-2026-X1"
                       value={formData.verification_reference}
                       onChange={(e) => setFormData({ ...formData, verification_reference: e.target.value })}
                       className="w-full rounded-lg border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-xs text-white placeholder-slate-600 focus:border-emerald-500 focus:outline-none font-mono"

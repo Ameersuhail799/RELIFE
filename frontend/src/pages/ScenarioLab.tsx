@@ -116,13 +116,13 @@ export const ScenarioLab: React.FC = () => {
     enabled: !!selectedAssetId,
   });
 
-  // 3. Evaluate Asset with Decision Objective
+  // 3. Read-Only Assessment Preview with Decision Objective
   const {
     data: evaluation,
     isLoading: isEvaluationLoading,
   } = useQuery({
     queryKey: ['evaluation', selectedAssetId, objective],
-    queryFn: () => api.evaluateAsset(selectedAssetId, objective),
+    queryFn: () => api.getAssetEvaluation(selectedAssetId, objective),
     enabled: !!selectedAssetId,
   });
 
@@ -534,7 +534,7 @@ export const ScenarioLab: React.FC = () => {
                   <div className="p-4 pt-0">
                     <button
                       onClick={() =>
-                        navigate(`/asset-intelligence?selected=${selectedAssetId}`)
+                        navigate(`/assets?selected=${selectedAssetId}`)
                       }
                       className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-2 ${
                         isRecommended
@@ -565,7 +565,7 @@ export const ScenarioLab: React.FC = () => {
                 Regulatory Exclusions & Security Gate Disqualifications
               </h4>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Under ReLife Zero-Trust and NIST SP 800-88 Rev. 2 guidelines, these pathways are strictly prohibited by deterministic safety checks and cannot be selected.
+                Aligned with ReLife Zero-Trust and NIST SP 800-88 Rev. 2 guidance, these pathways are strictly prohibited by deterministic safety checks and cannot be selected.
               </p>
             </div>
           </div>
@@ -594,7 +594,7 @@ export const ScenarioLab: React.FC = () => {
 
                   <p className="text-[11px] text-slate-400 leading-relaxed">
                     {isSecurityBlocked
-                      ? 'Blocked by NIST SP 800-88 Rev. 2 Security Gate: Active physical storage present without certified sanitization.'
+                      ? 'Blocked by Security Gate (aligned with NIST SP 800-88 Rev. 2 guidance): Active physical storage present without verified sanitization.'
                       : `${blocked.description} Ineligible due to hardware functional grading or component requirements.`}
                   </p>
 

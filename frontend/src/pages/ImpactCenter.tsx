@@ -403,23 +403,28 @@ export const ImpactCenter: React.FC = () => {
                 <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2 text-xs">
                   <div className="flex justify-between border-b border-slate-800 pb-1.5">
                     <span className="text-slate-400">Laptop Embodied Carbon:</span>
-                    <span className="font-mono text-white font-bold">~250.0 kg CO₂e / unit</span>
+                    <span className="font-mono text-white font-bold">~280.0 kg CO₂e / unit</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 pb-1.5">
                     <span className="text-slate-400">Desktop Workstation Embodied:</span>
                     <span className="font-mono text-white font-bold">~350.0 kg CO₂e / unit</span>
                   </div>
                   <div className="flex justify-between border-b border-slate-800 pb-1.5">
-                    <span className="text-slate-400">Enterprise Server Node Embodied:</span>
-                    <span className="font-mono text-white font-bold">~800.0 kg CO₂e / unit</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
                     <span className="text-slate-400">Average Laptop Mass (E-Waste):</span>
                     <span className="font-mono text-white font-bold">~2.1 kg</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
                     <span className="text-slate-400">Average Desktop Mass (E-Waste):</span>
-                    <span className="font-mono text-white font-bold">~8.5 kg</span>
+                    <span className="font-mono text-white font-bold">~7.5 kg</span>
+                  </div>
+                  <div className="flex justify-between border-b border-slate-800 pb-1.5">
+                    <span className="text-slate-400">Annual Displaced Manufacturing Rate:</span>
+                    <span className="font-mono text-emerald-400 font-bold">45.0 kg CO₂e / year</span>
+                  </div>
+                  <div className="pt-1 text-[11px] text-slate-400 leading-relaxed">
+                    <strong>Avoided CO₂e Formula:</strong> <span className="font-mono text-white">Life Extension (Years) × 45.0 kg CO₂e/year</span>
+                    <br />
+                    Direct Reuse: +3.0 yrs (135.0 kg) · Repair/Refurbish: +2.5 yrs (112.5 kg) · Repurpose: +2.0 yrs (90.0 kg) · Component Harvest: +1.0 yr (45.0 kg) · Recycle: +0.0 yrs (0.0 kg)
                   </div>
                 </div>
               </div>

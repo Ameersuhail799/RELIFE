@@ -152,7 +152,7 @@ export const CommandCenter: React.FC = () => {
   const totalRegistered = impactSummary?.total_assets_registered ?? assets.length;
   const totalAssessed = impactSummary?.total_assets_assessed ?? 0;
   const totalEligible = impactSummary?.total_assets_eligible_circular ?? 0;
-  const pendingApprovals = approvals.filter((a) => a.approval_status === 'PENDING_DECISION').length;
+  const pendingApprovals = approvals.filter((a) => a.approval_status === 'PENDING_APPROVAL').length;
   const approvedCount = approvals.filter((a) => a.approval_status === 'APPROVED' || a.approval_status === 'OVERRIDDEN').length;
 
   const awaitingSecurity = assets.filter(

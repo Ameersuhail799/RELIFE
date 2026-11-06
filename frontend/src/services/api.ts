@@ -86,6 +86,11 @@ export const api = {
   },
 
   // Decision & Scenario Intelligence
+  async getAssetEvaluation(assetId: string, decisionObjective: DecisionObjective = 'BALANCED'): Promise<EvaluationResponse> {
+    const query = new URLSearchParams({ objective: decisionObjective });
+    return request<EvaluationResponse>(`/evaluate/${encodeURIComponent(assetId)}?${query.toString()}`);
+  },
+
   async evaluateAsset(assetId: string, decisionObjective: DecisionObjective = 'BALANCED'): Promise<EvaluationResponse> {
     return request<EvaluationResponse>('/evaluate', {
       method: 'POST',
