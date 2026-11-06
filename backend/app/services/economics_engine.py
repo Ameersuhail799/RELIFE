@@ -79,7 +79,7 @@ def estimate_residual_value_prototype(
     purchase_year: int,
     physical_condition: PhysicalCondition,
     functional_status: FunctionalStatus,
-) -> Tuple_Valuation:
+) -> ResidualValuationResult:
     """
     Deterministic prototype valuation formula:
     Estimated Residual Value = Reference Value × Age Factor × Condition Factor × Functionality Factor.
